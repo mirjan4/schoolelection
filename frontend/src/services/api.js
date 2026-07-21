@@ -45,6 +45,15 @@ export const boothsAPI = {
   delete: (id) => api.delete(`/booths/${id}`),
 }
 
+// ─── POSITIONS ──────────────────────────────────────
+export const positionsAPI = {
+  getAll: (params) => api.get('/positions', { params }),
+  getOne: (id) => api.get(`/positions/${id}`),
+  create: (data) => api.post('/positions', data),
+  update: (id, data) => api.put(`/positions/${id}`, data),
+  delete: (id) => api.delete(`/positions/${id}`),
+}
+
 // ─── STUDENTS ───────────────────────────────────────
 export const studentsAPI = {
   getAll: (params) => api.get('/students', { params }),
@@ -54,6 +63,7 @@ export const studentsAPI = {
   delete: (id) => api.delete(`/students/${id}`),
   bulkCreate: (students) => api.post('/students/bulk', { students }),
   transferStudents: (data) => api.post('/students/bulk-transfer', data),
+  bulkDelete: (ids) => api.delete('/students', { data: { ids } }),
 }
 
 // ─── CANDIDATES ─────────────────────────────────────

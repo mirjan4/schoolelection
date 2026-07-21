@@ -19,7 +19,7 @@ const studentSchema = new mongoose.Schema({
   },
   section: {
     type: String,
-    required: [true, 'Section is required'],
+    default: '',
     trim: true,
   },
   boothId: {
@@ -35,6 +35,10 @@ const studentSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  hasVotedCollege: {
+    type: Boolean,
+    default: false,
+  },
   votedAt: {
     type: Date,
     default: null,
@@ -47,7 +51,7 @@ const studentSchema = new mongoose.Schema({
 
 // Virtual: has voted at all
 studentSchema.virtual('hasVoted').get(function () {
-  return this.hasVotedClassLeader && this.hasVotedSchoolLeader;
+  return (this.hasVotedClassLeader && this.hasVotedSchoolLeader) || this.hasVotedCollege;
 });
 
 studentSchema.set('toJSON', { virtuals: true });

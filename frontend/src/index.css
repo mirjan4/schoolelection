@@ -54,6 +54,11 @@
            transition-all duration-200;
   }
 
+  select option {
+    background-color: #0b0f19;
+    color: #ffffff;
+  }
+
   /* Status badge */
   .badge-active {
     @apply inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-400 

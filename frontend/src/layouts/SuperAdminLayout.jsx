@@ -1,18 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Vote, Users, School, UserCog,
-  BarChart3, Settings, LogOut, Menu, X, Zap, Wifi, WifiOff
+  BarChart3, Settings, LogOut, Menu, X, Zap, Wifi, WifiOff, Layers
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useSocket } from '../context/SocketContext'
+import { electionAPI } from '../services/api'
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/admin/election', label: 'Election Control', icon: Zap },
   { to: '/admin/booths', label: 'Booths', icon: School },
   { to: '/admin/students', label: 'Students', icon: Users },
+  { to: '/admin/positions', label: 'Positions', icon: Layers },
   { to: '/admin/candidates', label: 'Candidates', icon: Vote },
   { to: '/admin/users', label: 'Booth Admins', icon: UserCog },
   { to: '/admin/results', label: 'Results', icon: BarChart3 },
@@ -20,11 +22,43 @@ const navItems = [
 
 export default function SuperAdminLayout() {
   const { user, logout } = useAuth()
-  const { connected } = useSocket()
+  const { socket, connected } = useSocket()
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [election, setElection] = useState(null)
   const navigate = useNavigate()
 
   const handleLogout = () => { logout(); navigate('/login') }
+
+  useEffect(() => {
+    const fetchElection = async () => {
+      try {
+        const res = await electionAPI.status()
+        setElection(res.data.data)
+      } catch (err) {
+        console.error('Failed to load election status in layout', err)
+      }
+    }
+    fetchElection()
+  }, [])
+
+  useEffect(() => {
+    if (!socket) return
+    const handleStart = ({ election }) => setElection(election)
+    const handleEnd = ({ election }) => setElection(election)
+    socket.on('election_started', handleStart)
+    socket.on('election_ended', handleEnd)
+    return () => {
+      socket.off('election_started', handleStart)
+      socket.off('election_ended', handleEnd)
+    }
+  }, [socket])
+
+  const filteredNavItems = navItems.filter(item => {
+    if (election?.status === 'active' && election?.type === 'school' && item.to === '/admin/positions') {
+      return false
+    }
+    return true
+  })
 
   return (
     <div className="flex min-h-screen bg-navy-950">
@@ -56,7 +90,7 @@ export default function SuperAdminLayout() {
 
             {/* Nav */}
             <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-              {navItems.map(({ to, label, icon: Icon, end }) => (
+              {filteredNavItems.map(({ to, label, icon: Icon, end }) => (
                 <NavLink
                   key={to}
                   to={to}

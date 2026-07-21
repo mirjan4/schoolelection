@@ -18,12 +18,12 @@ const WinnerCard = ({ candidate, rank, type }) => (
     {rank === 0 && (
       <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
         <div className="bg-gold-500/20 text-gold-400 text-[10px] font-black px-2 py-0.5 rounded border border-gold-500/30 tracking-widest uppercase">
-          {type === 'school' ? 'SCHOOL LEADER' : 'CLASS LEADER'}
+          {type === 'school' ? 'SCHOOL LEADER' : type === 'class' ? 'CLASS LEADER' : 'WINNER'}
         </div>
         <Crown size={20} className="text-gold-400" />
       </div>
     )}
-    {rank === 1 && (
+    {rank === 1 && (type === 'school' || type === 'class') && (
       <div className="absolute top-3 right-3">
         <div className="bg-white/10 text-white/60 text-[10px] font-black px-2 py-0.5 rounded border border-white/10 tracking-widest uppercase">
           {type === 'school' ? 'ASST. SCHOOL LEADER' : 'ASST. CLASS LEADER'}
@@ -111,67 +111,121 @@ export default function ResultsPage() {
         </button>
       </div>
 
-      {/* School Leaders */}
-      <div>
-        <h2 className="text-white font-semibold mb-3 flex items-center gap-2">
-          <Trophy size={18} className="text-gold-400" /> School Leader Results
-          <span className="text-white/30 text-sm font-normal">({results?.totalSchoolVotes || 0} votes)</span>
-        </h2>
-        <div className="space-y-3">
-          {results?.schoolLeaders?.map((c, i) => <WinnerCard key={c._id} candidate={c} rank={i} type="school" />)}
-          {!results?.schoolLeaders?.length && <p className="text-white/30 text-sm py-6 glass-card p-4 text-center">No school leader votes yet</p>}
+      {results?.electionType === 'college' ? (
+        <div className="space-y-8">
+          {results.positionResults?.map(({ position, totalVotes, candidates }) => {
+            const chartData = candidates?.map(c => ({ name: c.name.split(' ')[0], Votes: c.voteCount })) || []
+            return (
+              <div key={position._id} className="space-y-4">
+                <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                  <h2 className="text-white/80 font-bold flex items-center gap-2 text-lg">
+                    <span className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center text-primary-400 text-xs font-mono">
+                      {position.displayOrder}
+                    </span>
+                    {position.name} Results
+                  </h2>
+                  <span className="text-white/40 text-xs font-medium">{totalVotes} votes cast (Max votes allowed: {position.maxVotes})</span>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    {candidates.map((c, i) => (
+                      <WinnerCard key={c._id} candidate={c} rank={i} type="college" />
+                    ))}
+                    {candidates.length === 0 && (
+                      <p className="text-white/30 text-xs py-6 text-center bg-white/3 rounded-xl border border-white/5">No candidates or votes for this position</p>
+                    )}
+                  </div>
+                  {chartData.some(d => d.Votes > 0) ? (
+                    <div className="glass-card p-5 flex flex-col justify-center">
+                      <h4 className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-4">Vote Distribution</h4>
+                      <ResponsiveContainer width="100%" height={180}>
+                        <BarChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                          <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} />
+                          <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} />
+                          <Tooltip contentStyle={{ background: 'rgba(10,15,30,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }} labelStyle={{ color: 'rgba(255,255,255,0.6)' }} itemStyle={{ color: '#3b82f6' }} />
+                          <Bar dataKey="Votes" radius={[4, 4, 0, 0]}>
+                            {chartData.map((_, idx) => <Cell key={idx} fill={COLORS[idx % COLORS.length]} />)}
+                          </Bar>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    candidates.length > 0 && <div className="glass-card p-5 flex items-center justify-center text-white/30 text-xs">No votes cast yet</div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+          {(!results.positionResults || results.positionResults.length === 0) && (
+            <p className="text-white/30 text-sm py-12 text-center glass-card">No positions results defined</p>
+          )}
         </div>
-      </div>
-
-      {/* Bar chart */}
-      {schoolChartData.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6">
-          <h3 className="text-white/70 font-semibold mb-4 flex items-center gap-2"><BarChart2 size={16} className="text-primary-400" /> Vote Distribution</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={schoolChartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} />
-              <Tooltip contentStyle={{ background: 'rgba(10,15,30,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }} labelStyle={{ color: 'rgba(255,255,255,0.6)' }} itemStyle={{ color: '#3b82f6' }} />
-              <Bar dataKey="Votes" radius={[6, 6, 0, 0]}>
-                {schoolChartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
-      )}
-
-      {/* Class Leaders */}
-      <div className="space-y-8">
-        <div className="flex items-center gap-2">
-          <TrendingUp size={18} className="text-primary-400" />
-          <h2 className="text-white font-semibold">Class Leader Results</h2>
-          <span className="text-white/30 text-sm font-normal">({results?.totalClassVotes || 0} total votes)</span>
-        </div>
-
-        {results?.classWiseResults && Object.keys(results.classWiseResults).sort().map(cls => (
-          <div key={cls} className="space-y-3">
-            <div className="flex items-center justify-between border-b border-white/5 pb-2">
-              <h3 className="text-white/80 font-bold flex items-center gap-2">
-                <span className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center text-primary-400 text-xs">
-                  {cls}
-                </span>
-                Class {cls} Results
-              </h3>
-              <span className="text-white/30 text-xs">{results.classWiseResults[cls].totalVotes} votes cast</span>
-            </div>
+      ) : (
+        <>
+          {/* School Leaders */}
+          <div>
+            <h2 className="text-white font-semibold mb-3 flex items-center gap-2">
+              <Trophy size={18} className="text-gold-400" /> School Leader Results
+              <span className="text-white/30 text-sm font-normal">({results?.totalSchoolVotes || 0} votes)</span>
+            </h2>
             <div className="space-y-3">
-              {results.classWiseResults[cls].candidates.map((c, i) => (
-                <WinnerCard key={c._id} candidate={c} rank={i} type="class" />
-              ))}
+              {results?.schoolLeaders?.map((c, i) => <WinnerCard key={c._id} candidate={c} rank={i} type="school" />)}
+              {!results?.schoolLeaders?.length && <p className="text-white/30 text-sm py-6 glass-card p-4 text-center">No school leader votes yet</p>}
             </div>
           </div>
-        ))}
 
-        {(!results?.classWiseResults || Object.keys(results.classWiseResults).length === 0) && (
-          <p className="text-white/30 text-sm py-12 glass-card p-4 text-center">No class leader votes cast yet</p>
-        )}
-      </div>
+          {/* Bar chart */}
+          {schoolChartData.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6">
+              <h3 className="text-white/70 font-semibold mb-4 flex items-center gap-2"><BarChart2 size={16} className="text-primary-400" /> Vote Distribution</h3>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={schoolChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} />
+                  <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: 'rgba(10,15,30,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }} labelStyle={{ color: 'rgba(255,255,255,0.6)' }} itemStyle={{ color: '#3b82f6' }} />
+                  <Bar dataKey="Votes" radius={[6, 6, 0, 0]}>
+                    {schoolChartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </motion.div>
+          )}
+
+          {/* Class Leaders */}
+          <div className="space-y-8">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={18} className="text-primary-400" />
+              <h2 className="text-white font-semibold">Class Leader Results</h2>
+              <span className="text-white/30 text-sm font-normal">({results?.totalClassVotes || 0} total votes)</span>
+            </div>
+
+            {results?.classWiseResults && Object.keys(results.classWiseResults).sort().map(cls => (
+              <div key={cls} className="space-y-3">
+                <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                  <h3 className="text-white/80 font-bold flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center text-primary-400 text-xs">
+                      {cls}
+                    </span>
+                    Class {cls} Results
+                  </h3>
+                  <span className="text-white/30 text-xs">{results.classWiseResults[cls].totalVotes} votes cast</span>
+                </div>
+                <div className="space-y-3">
+                  {results.classWiseResults[cls].candidates.map((c, i) => (
+                    <WinnerCard key={c._id} candidate={c} rank={i} type="class" />
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {(!results?.classWiseResults || Object.keys(results.classWiseResults).length === 0) && (
+              <p className="text-white/30 text-sm py-12 glass-card p-4 text-center">No class leader votes cast yet</p>
+            )}
+          </div>
+        </>
+      )}
 
       {/* Booth results */}
       <div className="glass-card p-6">

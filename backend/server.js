@@ -51,6 +51,7 @@ app.use('/api/votes', require('./routes/votes'));
 app.use('/api/election', require('./routes/election'));
 app.use('/api/results', require('./routes/results'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/positions', require('./routes/positions'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -75,3 +76,5 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/school_el
   });
 
 module.exports = { app, io };
+
+// Restart triggered to reload environment variables

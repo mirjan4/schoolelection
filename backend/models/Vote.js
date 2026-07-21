@@ -13,8 +13,12 @@ const voteSchema = new mongoose.Schema({
   },
   electionType: {
     type: String,
-    enum: ['class_leader', 'school_leader'],
     required: true,
+  },
+  positionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Position',
+    default: null,
   },
   boothId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -27,7 +31,26 @@ const voteSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-// Prevent duplicate votes: one student, one election type
-voteSchema.index({ studentId: 1, electionType: 1 }, { unique: true });
+// Prevent duplicate votes: one student, one election type (School mode)
+voteSchema.index(
+  { studentId: 1, electionType: 1 },
+  { 
+    unique: true, 
+    partialFilterExpression: { 
+      electionType: { $in: ['class_leader', 'school_leader'] } 
+    } 
+  }
+);
+
+// Prevent duplicate votes for same position candidate (College mode)
+voteSchema.index(
+  { studentId: 1, positionId: 1, candidateId: 1 },
+  { 
+    unique: true, 
+    partialFilterExpression: { 
+      positionId: { $exists: true, $ne: null } 
+    } 
+  }
+);
 
 module.exports = mongoose.model('Vote', voteSchema);

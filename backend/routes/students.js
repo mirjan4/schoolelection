@@ -16,10 +16,20 @@ router.get('/', protect, async (req, res) => {
       query.boothId = boothId;
     }
 
+    const Election = require('../models/Election');
+    const activeElection = await Election.findOne().sort({ createdAt: -1 });
+    const isCollege = activeElection && activeElection.type === 'college';
+
     if (cls) query.class = cls;
     if (section) query.section = section;
-    if (hasVoted === 'true') query.hasVotedClassLeader = true;
-    if (hasVoted === 'false') query.hasVotedClassLeader = false;
+    if (hasVoted === 'true') {
+      if (isCollege) query.hasVotedCollege = true;
+      else query.hasVotedClassLeader = true;
+    }
+    if (hasVoted === 'false') {
+      if (isCollege) query.hasVotedCollege = false;
+      else query.hasVotedClassLeader = false;
+    }
 
     if (search) {
       query.$or = [
@@ -49,6 +59,11 @@ router.get('/:id', protect, async (req, res) => {
 // @POST /api/students
 router.post('/', protect, superAdmin, async (req, res) => {
   try {
+    const Booth = require('../models/Booth');
+    const activeBooths = await Booth.find({ active: true });
+    if (activeBooths.length === 1 && !req.body.boothId) {
+      req.body.boothId = activeBooths[0]._id;
+    }
     const student = await Student.create(req.body);
     res.status(201).json({ success: true, data: student });
   } catch (err) {
@@ -81,6 +96,18 @@ router.delete('/:id', protect, superAdmin, async (req, res) => {
   }
 });
 
+// @DELETE /api/students
+router.delete('/', protect, superAdmin, async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids)) return res.status(400).json({ success: false, message: 'Invalid IDs list' });
+    await Student.deleteMany({ _id: { $in: ids } });
+    res.json({ success: true, message: 'Students deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // @POST /api/students/bulk-transfer
 router.post('/bulk-transfer', protect, superAdmin, async (req, res) => {
   try {
@@ -99,6 +126,33 @@ router.post('/bulk-transfer', protect, superAdmin, async (req, res) => {
 
     res.json({ success: true, message: `Successfully transferred ${studentIds.length} students` });
   } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// @POST /api/students/bulk
+router.post('/bulk', protect, superAdmin, async (req, res) => {
+  try {
+    const { students } = req.body;
+    if (!students || !Array.isArray(students)) {
+      return res.status(400).json({ success: false, message: 'Invalid data' });
+    }
+    const Booth = require('../models/Booth');
+    const activeBooths = await Booth.find({ active: true });
+    let studentsToInsert = students;
+    if (activeBooths.length === 1) {
+      const singleBoothId = activeBooths[0]._id;
+      studentsToInsert = students.map(s => ({
+        ...s,
+        boothId: singleBoothId
+      }));
+    }
+    const result = await Student.insertMany(studentsToInsert, { ordered: false });
+    res.status(201).json({ success: true, data: result });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(201).json({ success: true, message: 'Some students were imported; duplicates ignored.' });
+    }
     res.status(500).json({ success: false, message: err.message });
   }
 });

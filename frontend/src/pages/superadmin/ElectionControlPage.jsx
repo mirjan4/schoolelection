@@ -12,6 +12,7 @@ export default function ElectionControlPage() {
   const [starting, setStarting] = useState(false)
   const [stopping, setStopping] = useState(false)
   const [title, setTitle] = useState('School Election 2024')
+  const [electionType, setElectionType] = useState('school')
 
   const fetchElection = async () => {
     try {
@@ -40,7 +41,7 @@ export default function ElectionControlPage() {
     if (!confirm('Start the election? All booth devices will be activated.')) return
     setStarting(true)
     try {
-      await electionAPI.start({ title })
+      await electionAPI.start({ title, type: electionType })
       toast.success('Election started successfully!')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to start election')
@@ -109,8 +110,14 @@ export default function ElectionControlPage() {
                 <p className="text-white/80 text-sm font-medium">{new Date(election.endedAt).toLocaleString()}</p>
               </div>
             )}
+            <div>
+              <p className="text-white/30 text-xs">Election Type</p>
+              <p className="text-white/80 text-sm font-semibold uppercase text-primary-400">
+                {election.type === 'college' ? 'College Union' : 'School'}
+              </p>
+            </div>
             {election?.title && (
-              <div>
+              <div className="col-span-2 mt-2 pt-2 border-t border-white/5">
                 <p className="text-white/30 text-xs">Title</p>
                 <p className="text-white/80 text-sm font-medium">{election.title}</p>
               </div>
@@ -129,6 +136,35 @@ export default function ElectionControlPage() {
                 onChange={e => setTitle(e.target.value)}
                 placeholder="e.g. School Election 2024"
               />
+            </div>
+            <div>
+              <label className="text-white/60 text-sm font-medium block mb-2">Election Type</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setElectionType('school')}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    electionType === 'school'
+                      ? 'border-primary-500 bg-primary-500/10 text-white shadow-lg shadow-primary-500/10'
+                      : 'border-white/10 bg-white/3 text-white/50 hover:border-white/20'
+                  }`}
+                >
+                  <p className="font-bold text-sm">School Election</p>
+                  <p className="text-[11px] text-white/40 mt-1">2 votes only: Class Leader & School Leader.</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setElectionType('college')}
+                  className={`p-4 rounded-xl border text-left transition-all ${
+                    electionType === 'college'
+                      ? 'border-primary-500 bg-primary-500/10 text-white shadow-lg shadow-primary-500/10'
+                      : 'border-white/10 bg-white/3 text-white/50 hover:border-white/20'
+                  }`}
+                >
+                  <p className="font-bold text-sm">College Union Election</p>
+                  <p className="text-[11px] text-white/40 mt-1">Position-based flow. Unlimited positions and custom max votes.</p>
+                </button>
+              </div>
             </div>
             <motion.button
               whileTap={{ scale: 0.97 }}

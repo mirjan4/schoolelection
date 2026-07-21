@@ -19,7 +19,7 @@ router.get('/status', async (req, res) => {
 // @POST /api/election/start
 router.post('/start', protect, superAdmin, async (req, res) => {
   try {
-    const { title, scheduledEnd } = req.body;
+    const { title, type, scheduledEnd } = req.body;
     let election = await Election.findOne().sort({ createdAt: -1 });
 
     if (election && election.status === 'active') {
@@ -27,7 +27,8 @@ router.post('/start', protect, superAdmin, async (req, res) => {
     }
 
     election = await Election.create({
-      title: title || 'School Election',
+      title: title || (type === 'college' ? 'College Union Election' : 'School Election'),
+      type: type || 'school',
       status: 'active',
       startedAt: new Date(),
       scheduledEnd: scheduledEnd || null,
@@ -70,7 +71,7 @@ router.post('/session/start', protect, boothAdmin, async (req, res) => {
     const student = await Student.findById(studentId);
     if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
 
-    if (student.hasVotedClassLeader && student.hasVotedSchoolLeader) {
+    if (student.hasVoted) {
       return res.status(400).json({ success: false, message: 'Student has already voted' });
     }
 
@@ -161,12 +162,16 @@ router.get('/stats', protect, async (req, res) => {
       ? (req.user.boothId?._id || req.user.boothId)
       : null;
 
+    const activeElection = await Election.findOne().sort({ createdAt: -1 });
+    const isCollege = activeElection && activeElection.type === 'college';
+    const votedFilter = isCollege ? { hasVotedCollege: true } : { hasVotedClassLeader: true, hasVotedSchoolLeader: true };
+
     const studentQuery = boothId ? { boothId } : {};
     const voteQuery = boothId ? { boothId } : {};
 
     const [totalStudents, totalVoted, totalVotes, booths] = await Promise.all([
       Student.countDocuments(studentQuery),
-      Student.countDocuments({ ...studentQuery, hasVotedClassLeader: true, hasVotedSchoolLeader: true }),
+      Student.countDocuments({ ...studentQuery, ...votedFilter }),
       require('../models/Vote').countDocuments(voteQuery),
       boothId ? [] : Booth.find({ active: true }),
     ]);
@@ -176,7 +181,7 @@ router.get('/stats', protect, async (req, res) => {
       boothStats = await Promise.all(booths.map(async (b) => {
         const [bs, bv] = await Promise.all([
           Student.countDocuments({ boothId: b._id }),
-          Student.countDocuments({ boothId: b._id, hasVotedClassLeader: true, hasVotedSchoolLeader: true }),
+          Student.countDocuments({ boothId: b._id, ...votedFilter }),
         ]);
 
         let status = 'balanced';

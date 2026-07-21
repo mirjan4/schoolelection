@@ -6,6 +6,11 @@ const electionSchema = new mongoose.Schema({
     required: true,
     default: 'School Election',
   },
+  type: {
+    type: String,
+    enum: ['school', 'college'],
+    default: 'school',
+  },
   status: {
     type: String,
     enum: ['not_started', 'active', 'paused', 'ended'],

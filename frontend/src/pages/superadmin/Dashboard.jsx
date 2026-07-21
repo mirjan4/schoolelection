@@ -170,54 +170,83 @@ export default function SuperAdminDashboard() {
           </h2>
           
           <div className="space-y-4">
-            {/* School Leader Winner */}
-            {results?.schoolLeaders?.[0] && (
-              <div className="p-3 bg-gold-500/10 border border-gold-500/20 rounded-xl flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gold-500/20 flex items-center justify-center text-xl">
-                  {results.schoolLeaders[0].symbolIcon}
-                </div>
-                <div>
-                  <p className="text-[10px] text-gold-400 font-bold uppercase tracking-wider">School Leader</p>
-                  <p className="text-white font-bold">{results.schoolLeaders[0].name}</p>
-                </div>
-                <div className="ml-auto text-right">
-                  <p className="text-white font-mono text-sm">{results.schoolLeaders[0].voteCount} votes</p>
-                </div>
+            {results?.electionType === 'college' ? (
+              <div className="space-y-2.5 max-h-[190px] overflow-y-auto pr-1 scrollbar-hide">
+                {results.positionResults?.map(({ position, candidates }) => {
+                  const winner = candidates?.[0];
+                  return (
+                    <div key={position._id} className="p-2 bg-white/3 border border-white/5 rounded-xl flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center text-sm">
+                        {winner?.symbolIcon || '⭐'}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[9px] text-primary-400 font-bold uppercase tracking-wider leading-none mb-0.5">{position.name}</p>
+                        <p className="text-white font-bold text-xs truncate leading-normal">{winner ? winner.name : 'No candidates'}</p>
+                      </div>
+                      {winner && (
+                        <span className="text-[10px] text-white/50 bg-white/5 border border-white/10 px-2 py-0.5 rounded font-mono">
+                          {winner.voteCount} votes
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+                {(!results?.positionResults || results.positionResults.length === 0) && (
+                  <p className="text-white/30 text-xs py-6 text-center">No college positions results yet</p>
+                )}
               </div>
-            )}
+            ) : (
+              <>
+                {/* School Leader Winner */}
+                {results?.schoolLeaders?.[0] && (
+                  <div className="p-3 bg-gold-500/10 border border-gold-500/20 rounded-xl flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-gold-500/20 flex items-center justify-center text-xl">
+                      {results.schoolLeaders[0].symbolIcon}
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gold-400 font-bold uppercase tracking-wider">School Leader</p>
+                      <p className="text-white font-bold">{results.schoolLeaders[0].name}</p>
+                    </div>
+                    <div className="ml-auto text-right">
+                      <p className="text-white font-mono text-sm">{results.schoolLeaders[0].voteCount} votes</p>
+                    </div>
+                  </div>
+                )}
 
-            {/* Assistant School Leader Winner */}
-            {results?.schoolLeaders?.[1] && (
-              <div className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-xl">
-                  {results.schoolLeaders[1].symbolIcon}
-                </div>
-                <div>
-                  <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Asst. School Leader</p>
-                  <p className="text-white font-bold">{results.schoolLeaders[1].name}</p>
-                </div>
-                <div className="ml-auto text-right">
-                  <p className="text-white font-mono text-sm">{results.schoolLeaders[1].voteCount} votes</p>
-                </div>
-              </div>
-            )}
+                {/* Assistant School Leader Winner */}
+                {results?.schoolLeaders?.[1] && (
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-xl">
+                      {results.schoolLeaders[1].symbolIcon}
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Asst. School Leader</p>
+                      <p className="text-white font-bold">{results.schoolLeaders[1].name}</p>
+                    </div>
+                    <div className="ml-auto text-right">
+                      <p className="text-white font-mono text-sm">{results.schoolLeaders[1].voteCount} votes</p>
+                    </div>
+                  </div>
+                )}
 
-            {/* Class Leaders Count */}
-            <div className="pt-2">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-white/60 text-xs">Class Leaders Decided</span>
-                <span className="text-primary-400 text-xs font-bold">
-                  {Object.keys(results?.classWiseResults || {}).length} classes
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {Object.keys(results?.classWiseResults || {}).sort().map(cls => (
-                  <span key={cls} className="text-[10px] px-2 py-0.5 bg-white/5 border border-white/10 rounded-md text-white/40">
-                    {cls}: {results.classWiseResults[cls].candidates[0]?.name.split(' ')[0]}
-                  </span>
-                ))}
-              </div>
-            </div>
+                {/* Class Leaders Count */}
+                <div className="pt-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-white/60 text-xs">Class Leaders Decided</span>
+                    <span className="text-primary-400 text-xs font-bold">
+                      {Object.keys(results?.classWiseResults || {}).length} classes
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {Object.keys(results?.classWiseResults || {}).sort().map(cls => (
+                      <span key={cls} className="text-[10px] px-2 py-0.5 bg-white/5 border border-white/10 rounded-md text-white/40">
+                        {cls}: {results.classWiseResults[cls].candidates[0]?.name.split(' ')[0]}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </motion.div>
       </div>

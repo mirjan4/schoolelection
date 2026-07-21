@@ -18,11 +18,12 @@ const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 // @GET /api/candidates
 router.get('/', protect, async (req, res) => {
   try {
-    const { electionType, active } = req.query;
+    const { electionType, positionId, active } = req.query;
     const query = {};
     if (electionType) query.electionType = electionType;
+    if (positionId) query.positionId = positionId;
     if (active !== undefined) query.active = active === 'true';
-    const candidates = await Candidate.find(query).sort({ name: 1 });
+    const candidates = await Candidate.find(query).populate('positionId').sort({ name: 1 });
     res.json({ success: true, data: candidates });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

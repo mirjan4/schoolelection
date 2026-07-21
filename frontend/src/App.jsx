@@ -17,6 +17,7 @@ import VotingDevice from './pages/device/VotingDevice'
 import DeviceSetup from './pages/device/DeviceSetup'
 import SuperAdminLayout from './layouts/SuperAdminLayout'
 import BoothAdminLayout from './layouts/BoothAdminLayout'
+import PositionsPage from './pages/superadmin/PositionsPage'
 
 // Protected route wrapper
 const ProtectedRoute = ({ children, roles }) => {
@@ -48,6 +49,7 @@ const AppRoutes = () => {
         <Route path="students" element={<StudentsPage />} />
         <Route path="candidates" element={<CandidatesPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="positions" element={<PositionsPage />} />
         <Route path="results" element={<ResultsPage />} />
         <Route path="election" element={<ElectionControlPage />} />
       </Route>

@@ -20,12 +20,30 @@ const candidateSchema = new mongoose.Schema({
   },
   electionType: {
     type: String,
-    enum: ['class_leader', 'school_leader'],
+    enum: ['class_leader', 'school_leader', 'college_position'],
     required: [true, 'Election type is required'],
+  },
+  positionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Position',
+    default: null,
+  },
+  department: {
+    type: String,
+    default: '',
+  },
+  year: {
+    type: String,
+    default: '',
   },
   class: {
     type: String,
     default: '',
+  },
+  manifesto: {
+    type: String,
+    default: '',
+    trim: true,
   },
   description: {
     type: String,

@@ -79,7 +79,7 @@ export default function BoothAdminPanel() {
 
   const handleStartVoting = async () => {
     if (!selectedStudent) return toast.error('Please select a student first')
-    if (selectedStudent.hasVotedClassLeader && selectedStudent.hasVotedSchoolLeader) {
+    if (selectedStudent.hasVoted) {
       return toast.error('This student has already voted')
     }
     setStarting(true)
@@ -175,7 +175,7 @@ export default function BoothAdminPanel() {
             <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-hide">
               <AnimatePresence>
                 {students.map(s => {
-                  const hasVoted = s.hasVotedClassLeader && s.hasVotedSchoolLeader
+                  const hasVoted = s.hasVoted
                   const isSelected = selectedStudent?._id === s._id
                   return (
                     <motion.button
