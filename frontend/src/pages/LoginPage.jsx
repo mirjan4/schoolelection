@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Vote, Eye, EyeOff, LogIn, Shield, Zap } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -125,9 +125,9 @@ export default function LoginPage() {
           {/* Voting device link */}
           <div className="mt-6 text-center">
             <p className="text-white/30 text-xs">Setting up a voting device?</p>
-            <a href="/device" className="text-primary-400 hover:text-primary-300 text-xs font-medium transition-colors">
+            <Link to="/device" className="text-primary-400 hover:text-primary-300 text-xs font-medium transition-colors">
               Open Voting Device Setup →
-            </a>
+            </Link>
           </div>
         </div>
 

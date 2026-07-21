@@ -13,6 +13,25 @@ const protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check if the token belongs to a voting device
+    if (typeof decoded.id === 'string' && decoded.id.startsWith('device_')) {
+      const boothId = decoded.id.replace('device_', '');
+      const Booth = require('../models/Booth');
+      const booth = await Booth.findById(boothId);
+      if (!booth || !booth.active) {
+        return res.status(401).json({ success: false, message: 'Device booth inactive or not found' });
+      }
+      // Populate req.user with virtual device profile
+      req.user = {
+        _id: decoded.id,
+        role: 'device',
+        boothId: booth._id,
+        isActive: true,
+      };
+      return next();
+    }
+
     req.user = await User.findById(decoded.id).populate('boothId');
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'User not found' });
