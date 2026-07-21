@@ -74,17 +74,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Info badges */}
-          <div className="flex gap-2 mb-6 flex-wrap justify-center">
-            {[
-              { icon: Shield, label: 'Secure JWT Auth' },
-              { icon: Zap, label: 'Realtime Updates' },
-            ].map(({ icon: Icon, label }) => (
-              <span key={label} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/8 rounded-full text-white/50 text-xs">
-                <Icon size={11} />{label}
-              </span>
-            ))}
-          </div>
+
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -141,17 +131,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Demo credentials */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-4 p-4 glass-card text-xs text-white/40 space-y-1"
-        >
-          <p className="text-white/60 font-semibold mb-2">Demo Credentials</p>
-          <p>Super Admin: <span className="text-white/60">admin@election.com</span> / <span className="text-white/60">admin123</span></p>
-          <p>Booth Admin: <span className="text-white/60">bootha@election.com</span> / <span className="text-white/60">booth123</span></p>
-        </motion.div>
+
       </motion.div>
     </div>
   )

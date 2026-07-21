@@ -26,6 +26,16 @@ router.post('/start', protect, superAdmin, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Election already active' });
     }
 
+    // Reset database state for the new election
+    const Candidate = require('../models/Candidate');
+    const Vote = require('../models/Vote');
+    await Promise.all([
+      Vote.deleteMany({}),
+      LiveSession.deleteMany({}),
+      Candidate.updateMany({}, { $set: { voteCount: 0 } }),
+      Student.updateMany({}, { $set: { hasVotedClassLeader: false, hasVotedSchoolLeader: false, hasVotedCollege: false } }),
+    ]);
+
     election = await Election.create({
       title: title || (type === 'college' ? 'College Union Election' : 'School Election'),
       type: type || 'school',
@@ -74,6 +84,10 @@ router.post('/session/start', protect, boothAdmin, async (req, res) => {
     if (student.hasVoted) {
       return res.status(400).json({ success: false, message: 'Student has already voted' });
     }
+
+    // Clear any partial votes for this student from a previous failed session
+    const Vote = require('../models/Vote');
+    await Vote.deleteMany({ studentId });
 
     // Upsert live session
     const session = await LiveSession.findOneAndUpdate(
