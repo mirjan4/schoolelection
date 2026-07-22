@@ -127,6 +127,7 @@ export default function VotingDevice() {
 
     socketRef.current = s
     return () => {
+      s.off()
       s.disconnect()
       clearTimeout(resetTimerRef.current)
     }
