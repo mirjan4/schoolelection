@@ -64,6 +64,7 @@ router.post('/device-token', async (req, res) => {
     res.json({ success: true, token, booth });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error' });
+    
   }
 });
 

@@ -5,7 +5,7 @@ const { protect, superAdmin } = require('../middleware/auth');
 
 // @GET /api/positions
 // Get all positions sorted by display order
-router.get('/', protect, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     const { active } = req.query;
     const query = {};

@@ -11,8 +11,8 @@ export default function ElectionControlPage() {
   const [loading, setLoading] = useState(true)
   const [starting, setStarting] = useState(false)
   const [stopping, setStopping] = useState(false)
-  const [title, setTitle] = useState('School Election 2024')
-  const [electionType, setElectionType] = useState('school')
+  const [title, setTitle] = useState('College Union Election 2024')
+  const [electionType, setElectionType] = useState('college')
 
   const fetchElection = async () => {
     try {
@@ -134,24 +134,27 @@ export default function ElectionControlPage() {
                 className="form-input"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                placeholder="e.g. School Election 2024"
+                placeholder="e.g. College Union Election 2024"
               />
             </div>
             <div>
               <label className="text-white/60 text-sm font-medium block mb-2">Election Type</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setElectionType('school')}
-                  className={`p-4 rounded-xl border text-left transition-all ${
-                    electionType === 'school'
-                      ? 'border-primary-500 bg-primary-500/10 text-white shadow-lg shadow-primary-500/10'
-                      : 'border-white/10 bg-white/3 text-white/50 hover:border-white/20'
-                  }`}
-                >
-                  <p className="font-bold text-sm">School Election</p>
-                  <p className="text-[11px] text-white/40 mt-1">2 votes only: Class Leader & School Leader.</p>
-                </button>
+              <div className="grid grid-cols-1 gap-4">
+                {/* School Election Option (Hidden temporarily from UI - set false to true or remove condition to re-enable) */}
+                {false && (
+                  <button
+                    type="button"
+                    onClick={() => setElectionType('school')}
+                    className={`p-4 rounded-xl border text-left transition-all ${
+                      electionType === 'school'
+                        ? 'border-primary-500 bg-primary-500/10 text-white shadow-lg shadow-primary-500/10'
+                        : 'border-white/10 bg-white/3 text-white/50 hover:border-white/20'
+                    }`}
+                  >
+                    <p className="font-bold text-sm">School Election</p>
+                    <p className="text-[11px] text-white/40 mt-1">2 votes only: Class Leader & School Leader.</p>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setElectionType('college')}

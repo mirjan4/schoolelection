@@ -49,7 +49,7 @@ export default function CandidatesPage() {
       setStudents(sRes.data.data)
       const activeElection = eRes.data.data
       setElection(activeElection)
-      setConfiguredType(activeElection?.type || 'school')
+      setConfiguredType(activeElection?.type || 'college')
     } catch {
       toast.error('Failed to load candidates data')
     } finally {
@@ -61,7 +61,7 @@ export default function CandidatesPage() {
     fetchData()
   }, [])
 
-  const isCollege = (election?.status === 'active' ? election?.type : (configuredType || 'school')) === 'college'
+  const isCollege = (election?.status === 'active' ? election?.type : (configuredType || 'college')) === 'college'
 
   // Filter candidates for School Mode
   const schoolLeaders = candidates.filter((c) => c.electionType === 'school_leader')

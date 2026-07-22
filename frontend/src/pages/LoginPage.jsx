@@ -70,7 +70,7 @@ export default function LoginPage() {
             </motion.div>
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gradient">VoteFlow</h1>
-              <p className="text-white/40 text-sm mt-1">School Election Management System</p>
+              <p className="text-white/40 text-sm mt-1">Election Management System</p>
             </div>
           </div>
 
