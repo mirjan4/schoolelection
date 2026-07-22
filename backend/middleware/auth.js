@@ -22,7 +22,15 @@ const protect = async (req, res, next) => {
       if (!booth || !booth.active) {
         return res.status(401).json({ success: false, message: 'Device booth inactive or not found' });
       }
-      // Populate req.user with virtual device profile
+
+      // Check active election
+      const Election = require('../models/Election');
+      const election = await Election.findOne({ status: 'active' });
+      if (!election) {
+        return res.status(400).json({ success: false, message: 'No active election running' });
+      }
+
+      // Populate req.user with virtual device profile (No User lookup required)
       req.user = {
         _id: decoded.id,
         role: 'device',

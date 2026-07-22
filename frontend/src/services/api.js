@@ -9,9 +9,9 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-// Attach JWT token to every request
+// Attach JWT token to every request (User token or Voting Device token)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('token') || localStorage.getItem('device_token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -21,9 +21,17 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
+      const userToken = localStorage.getItem('token')
+      const deviceToken = localStorage.getItem('device_token')
+      if (userToken) {
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+      } else if (deviceToken && window.location.pathname.startsWith('/device')) {
+        localStorage.removeItem('device_token')
+        localStorage.removeItem('device_booth')
+        window.location.href = '/device'
+      }
     }
     return Promise.reject(err)
   }

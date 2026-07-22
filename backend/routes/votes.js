@@ -9,16 +9,22 @@ const { protect } = require('../middleware/auth');
 // @POST /api/votes
 router.post('/', protect, async (req, res) => {
   try {
-    const { studentId, candidateId, electionType, boothId } = req.body;
+    const { studentId, candidateId, electionType } = req.body;
+    const targetBoothId = req.user.role === 'device' ? req.user.boothId : (req.body.boothId || req.user.boothId);
+
+    if (!targetBoothId) {
+      return res.status(400).json({ success: false, message: 'Booth ID required' });
+    }
 
     // Validate session
-    const session = await LiveSession.findOne({ boothId });
+    const session = await LiveSession.findOne({ boothId: targetBoothId });
     if (!session || session.status !== 'voting') {
       return res.status(400).json({ success: false, message: 'No active voting session' });
     }
     if (String(session.currentStudent) !== String(studentId)) {
       return res.status(400).json({ success: false, message: 'Session student mismatch' });
     }
+    const boothId = targetBoothId;
 
     // Check duplicate vote
     const student = await Student.findById(studentId);
