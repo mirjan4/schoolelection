@@ -427,17 +427,17 @@ export default function VotingDevice() {
       (c) => c.class === student?.class + student?.section
     ) || []
     return (
-      <div className="min-h-screen kiosk-bg flex flex-col p-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500/15 border border-primary-500/20 rounded-full mb-4">
-            <span className="text-primary-400 text-sm font-semibold">Step 1 of 2</span>
+      <div className="min-h-screen kiosk-bg flex flex-col p-4 sm:p-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 sm:py-2 bg-primary-500/15 border border-primary-500/20 rounded-full mb-3 sm:mb-4">
+            <span className="text-primary-400 text-xs sm:text-sm font-semibold">Step 1 of 2</span>
           </div>
-          <h1 className="text-4xl font-bold text-white">Vote for Class Leader</h1>
-          <p className="text-white/50 text-lg mt-2">Select your preferred candidate</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-white">Vote for Class Leader</h1>
+          <p className="text-white/50 text-sm sm:text-lg mt-1 sm:mt-2">Select your preferred candidate</p>
         </div>
         <div
-          className={`grid gap-5 flex-1 ${
-            list.length <= 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'
+          className={`grid gap-4 sm:gap-5 flex-1 ${
+            list.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
           } max-w-4xl mx-auto w-full`}
         >
           {list.map((c) => (
@@ -449,12 +449,12 @@ export default function VotingDevice() {
             />
           ))}
         </div>
-        <div className="mt-8 flex justify-center">
+        <div className="mt-6 sm:mt-8 flex justify-center">
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={proceedToSchoolLeader}
             disabled={!selections.class_leader}
-            className="flex items-center gap-3 px-12 py-5 rounded-2xl text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 sm:px-12 py-4 sm:py-5 rounded-2xl text-lg sm:text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all min-h-[52px]"
             style={selections.class_leader ? { boxShadow: '0 0 40px rgba(59,130,246,0.4)' } : {}}
           >
             Next: School Leader <ChevronRight size={24} />
@@ -468,17 +468,17 @@ export default function VotingDevice() {
   if (phase === PHASES.school_leader) {
     const list = candidates.school_leader || []
     return (
-      <div className="min-h-screen kiosk-bg flex flex-col p-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-500/15 border border-accent-500/20 rounded-full mb-4">
-            <span className="text-accent-400 text-sm font-semibold">Step 2 of 2</span>
+      <div className="min-h-screen kiosk-bg flex flex-col p-4 sm:p-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 sm:py-2 bg-accent-500/15 border border-accent-500/20 rounded-full mb-3 sm:mb-4">
+            <span className="text-accent-400 text-xs sm:text-sm font-semibold">Step 2 of 2</span>
           </div>
-          <h1 className="text-4xl font-bold text-white">Vote for School Leader</h1>
-          <p className="text-white/50 text-lg mt-2">Select your preferred candidate</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-white">Vote for School Leader</h1>
+          <p className="text-white/50 text-sm sm:text-lg mt-1 sm:mt-2">Select your preferred candidate</p>
         </div>
         <div
-          className={`grid gap-6 flex-1 ${
-            list.length <= 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'
+          className={`grid gap-4 sm:gap-6 flex-1 ${
+            list.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
           } max-w-5xl mx-auto w-full`}
         >
           {list.map((c) => (
@@ -491,12 +491,12 @@ export default function VotingDevice() {
             />
           ))}
         </div>
-        <div className="mt-8 flex justify-center">
+        <div className="mt-6 sm:mt-8 flex justify-center">
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={showConfirmSchool}
             disabled={!selections.school_leader}
-            className="flex items-center gap-3 px-12 py-5 rounded-2xl text-xl font-bold bg-gradient-to-r from-accent-600 to-accent-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 sm:px-12 py-4 sm:py-5 rounded-2xl text-lg sm:text-xl font-bold bg-gradient-to-r from-accent-600 to-accent-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all min-h-[52px]"
             style={selections.school_leader ? { boxShadow: '0 0 40px rgba(139,92,246,0.4)' } : {}}
           >
             Review & Confirm <ChevronRight size={24} />
@@ -515,21 +515,21 @@ export default function VotingDevice() {
     const selectedList = selections[currentPos._id] || []
 
     return (
-      <div className="min-h-screen kiosk-bg flex flex-col p-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-500/15 border border-primary-500/20 rounded-full mb-4">
-            <span className="text-primary-400 text-sm font-semibold">
+      <div className="min-h-screen kiosk-bg flex flex-col p-4 sm:p-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 sm:py-2 bg-primary-500/15 border border-primary-500/20 rounded-full mb-3 sm:mb-4">
+            <span className="text-primary-400 text-xs sm:text-sm font-semibold">
               Step {currentPositionIndex + 1} of {positions.length}
             </span>
           </div>
-          <h1 className="text-4xl font-bold text-white">Vote for {currentPos.name}</h1>
-          <p className="text-white/50 text-lg mt-2">
+          <h1 className="text-2xl sm:text-4xl font-bold text-white">Vote for {currentPos.name}</h1>
+          <p className="text-white/50 text-sm sm:text-lg mt-1 sm:mt-2">
             Select {currentPos.maxVotes === 1 ? 'your preferred candidate' : `up to ${currentPos.maxVotes} candidates`}
           </p>
         </div>
         <div
-          className={`grid gap-5 flex-1 ${
-            list.length <= 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-4'
+          className={`grid gap-4 sm:gap-5 flex-1 ${
+            list.length <= 3 ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
           } max-w-4xl mx-auto w-full`}
         >
           {list.map((c) => (
@@ -541,17 +541,17 @@ export default function VotingDevice() {
             />
           ))}
           {list.length === 0 && (
-            <div className="col-span-full flex items-center justify-center text-white/30 text-lg">
+            <div className="col-span-full flex items-center justify-center text-white/30 text-base sm:text-lg py-12">
               No candidates registered for this position.
             </div>
           )}
         </div>
-        <div className="mt-8 flex justify-center">
+        <div className="mt-6 sm:mt-8 flex justify-center">
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={proceedCollegePosition}
             disabled={list.length > 0 && selectedList.length === 0}
-            className="flex items-center gap-3 px-12 py-5 rounded-2xl text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 sm:px-12 py-4 sm:py-5 rounded-2xl text-lg sm:text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all min-h-[52px]"
             style={selectedList.length > 0 || list.length === 0 ? { boxShadow: '0 0 40px rgba(59,130,246,0.4)' } : {}}
           >
             {currentPositionIndex < positions.length - 1 ? (
@@ -585,19 +585,19 @@ export default function VotingDevice() {
       })
 
       return (
-        <div className="min-h-screen kiosk-bg flex flex-col items-center justify-center p-8 gap-8">
+        <div className="min-h-screen kiosk-bg flex flex-col items-center justify-center p-4 sm:p-8 gap-6 sm:gap-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-2xl space-y-6"
+            className="w-full max-w-2xl space-y-4 sm:space-y-6"
           >
             <div className="text-center">
-              <h1 className="text-4xl font-bold text-white mb-2">Confirm Your Votes</h1>
-              <p className="text-white/50">Please review your selections carefully before submitting</p>
+              <h1 className="text-2xl sm:text-4xl font-bold text-white mb-1.5 sm:mb-2">Confirm Your Votes</h1>
+              <p className="text-white/50 text-xs sm:text-base">Please review your selections carefully before submitting</p>
             </div>
-            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 scrollbar-hide">
+            <div className="space-y-3 sm:space-y-4 max-h-[45vh] sm:max-h-[50vh] overflow-y-auto pr-1 sm:pr-2 scrollbar-hide">
               {confirmItems.map(({ position, candidates }) => (
-                <div key={position._id} className="glass-card p-4 border border-white/10 space-y-2">
+                <div key={position._id} className="glass-card p-3 sm:p-4 border border-white/10 space-y-2">
                   <p className="text-primary-400 text-xs font-bold uppercase tracking-wider">
                     {position.name}
                   </p>
@@ -605,7 +605,7 @@ export default function VotingDevice() {
                     <div className="space-y-2">
                       {candidates.map((candidate) => (
                         <div key={candidate._id} className="flex items-center gap-3 bg-white/3 p-2.5 rounded-lg border border-white/5">
-                          <div className="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center text-2xl overflow-hidden">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-white/5 flex items-center justify-center text-xl sm:text-2xl overflow-hidden shrink-0">
                             {candidate.photo ? (
                               <img
                                 src={candidate.photo}
@@ -616,9 +616,9 @@ export default function VotingDevice() {
                               candidate.symbolIcon
                             )}
                           </div>
-                          <div className="flex-1">
-                            <p className="text-white font-bold text-base">{candidate.name}</p>
-                            <p className="text-white/40 text-xs">{candidate.symbol}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-bold text-sm sm:text-base truncate">{candidate.name}</p>
+                            <p className="text-white/40 text-xs truncate">{candidate.symbol}</p>
                           </div>
                         </div>
                       ))}
@@ -629,13 +629,13 @@ export default function VotingDevice() {
                 </div>
               ))}
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() => {
                   setPhase(PHASES.college_voting)
                   setCurrentPositionIndex(0)
                 }}
-                className="flex-1 py-4 rounded-2xl border border-white/15 text-white/60 hover:text-white hover:bg-white/5 font-semibold text-lg transition-all"
+                className="w-full sm:flex-1 py-3.5 sm:py-4 rounded-2xl border border-white/15 text-white/60 hover:text-white hover:bg-white/5 font-semibold text-base sm:text-lg transition-all min-h-[48px]"
               >
                 ← Change Selections
               </button>

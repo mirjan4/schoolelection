@@ -271,7 +271,7 @@ export default function CandidatesPage() {
                   <span className="h-px flex-1 bg-white/5"></span>
                 </div>
                 {list.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {list.map((c) => (
                       <CandidateCard key={c._id} c={c} />
                     ))}
@@ -296,7 +296,7 @@ export default function CandidatesPage() {
             <h2 className="text-white/70 font-semibold mb-3 flex items-center gap-2">
               <Trophy size={16} className="text-gold-400" /> School Leader ({schoolLeaders.length})
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {schoolLeaders.map((c) => (
                 <CandidateCard key={c._id} c={c} />
               ))}
@@ -329,7 +329,7 @@ export default function CandidatesPage() {
                       </span>
                       <span className="h-px flex-1 bg-white/5"></span>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {list.map((c) => (
                         <CandidateCard key={c._id} c={c} />
                       ))}

@@ -23,11 +23,23 @@ const navItems = [
 export default function SuperAdminLayout() {
   const { user, logout } = useAuth()
   const { socket, connected } = useSocket()
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 1024)
   const [election, setElection] = useState(null)
   const navigate = useNavigate()
 
   const handleLogout = () => { logout(); navigate('/login') }
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(true)
+      } else {
+        setSidebarOpen(false)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     const fetchElection = async () => {
@@ -60,8 +72,27 @@ export default function SuperAdminLayout() {
     return true
   })
 
+  const handleNavItemClick = () => {
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-navy-950">
+      {/* Mobile Backdrop */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 bg-black/70 z-40 lg:hidden backdrop-blur-xs"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -78,14 +109,22 @@ export default function SuperAdminLayout() {
             }}
           >
             {/* Logo */}
-            <div className="flex items-center gap-3 px-6 py-6 border-b border-white/5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg glow-blue">
-                <Vote size={20} className="text-white" />
+            <div className="flex items-center justify-between px-6 py-6 border-b border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center shadow-lg glow-blue">
+                  <Vote size={20} className="text-white" />
+                </div>
+                <div>
+                  <h1 className="text-white font-bold text-lg leading-none">VoteFlow</h1>
+                  <p className="text-white/40 text-xs mt-0.5">Election System</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-white font-bold text-lg leading-none">VoteFlow</h1>
-                <p className="text-white/40 text-xs mt-0.5">Election System</p>
-              </div>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="text-white/40 hover:text-white lg:hidden p-1 rounded-lg hover:bg-white/5"
+              >
+                <X size={20} />
+              </button>
             </div>
 
             {/* Nav */}
@@ -95,6 +134,7 @@ export default function SuperAdminLayout() {
                   key={to}
                   to={to}
                   end={end}
+                  onClick={handleNavItemClick}
                   className={({ isActive }) =>
                     `nav-item ${isActive ? 'active' : ''}`
                   }
@@ -115,14 +155,14 @@ export default function SuperAdminLayout() {
               </div>
               {/* User info */}
               <div className="flex items-center gap-3 px-3 py-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-xs font-bold">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-xs font-bold shrink-0">
                   {user?.name?.charAt(0)?.toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white/80 text-sm font-medium truncate">{user?.name}</p>
                   <p className="text-white/40 text-xs">Super Admin</p>
                 </div>
-                <button onClick={handleLogout} className="text-white/30 hover:text-red-400 transition-colors p-1" title="Logout">
+                <button onClick={handleLogout} className="text-white/30 hover:text-red-400 transition-colors p-1 shrink-0" title="Logout">
                   <LogOut size={16} />
                 </button>
               </div>
@@ -132,26 +172,26 @@ export default function SuperAdminLayout() {
       </AnimatePresence>
 
       {/* Main content */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
         {/* Top bar */}
-        <header className="sticky top-0 z-40 flex items-center gap-4 px-6 h-16 border-b border-white/5"
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 px-4 sm:px-6 h-16 border-b border-white/5"
           style={{ background: 'rgba(6,11,20,0.85)', backdropFilter: 'blur(12px)' }}>
           <button onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-white/50 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5">
+            className="text-white/50 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
+            aria-label="Toggle Navigation Sidebar">
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-          <div className="flex-1" />
           <div className="flex items-center gap-2">
             {connected ? (
-              <span className="badge-active"><span className="live-dot" />Live</span>
+              <span className="badge-active text-xs"><span className="live-dot" />Live</span>
             ) : (
-              <span className="badge-idle"><WifiOff size={10} />Offline</span>
+              <span className="badge-idle text-xs"><WifiOff size={10} />Offline</span>
             )}
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto min-w-0">
           <Outlet />
         </main>
       </div>

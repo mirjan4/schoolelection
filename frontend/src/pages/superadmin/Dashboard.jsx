@@ -113,10 +113,10 @@ export default function SuperAdminDashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-white">Election Dashboard</h1>
-          <p className="text-white/40 text-sm mt-0.5">Live statistics and real-time monitoring</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Election Dashboard</h1>
+          <p className="text-white/40 text-xs sm:text-sm mt-0.5">Live statistics and real-time monitoring</p>
         </div>
         <div className="flex items-center gap-2">
           <span className={`badge-${election?.status === 'active' ? 'active' : 'idle'}`}>
@@ -127,7 +127,7 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard icon={Users} label="Total Students" value={stats?.totalStudents} color="blue" delay={0.1} />
         <StatCard icon={Vote} label="Total Votes Cast" value={stats?.totalVotes} color="purple" delay={0.15} />
         <StatCard icon={TrendingUp} label="Voter Turnout" value={stats ? `${stats.turnout}%` : '—'} sub={`${stats?.totalVoted} voted`} color="green" delay={0.2} />

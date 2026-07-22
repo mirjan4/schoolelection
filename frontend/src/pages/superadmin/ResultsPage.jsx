@@ -15,23 +15,8 @@ const WinnerCard = ({ candidate, rank, type }) => (
     className={`relative glass-card p-5 overflow-hidden ${rank === 0 ? 'border-gold-500/40' : 'border-white/10'}`}
     style={rank === 0 ? { boxShadow: '0 0 30px rgba(251,191,36,0.15)' } : {}}
   >
-    {rank === 0 && (
-      <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
-        <div className="bg-gold-500/20 text-gold-400 text-[10px] font-black px-2 py-0.5 rounded border border-gold-500/30 tracking-widest uppercase">
-          {type === 'school' ? 'SCHOOL LEADER' : type === 'class' ? 'CLASS LEADER' : 'WINNER'}
-        </div>
-        <Crown size={20} className="text-gold-400" />
-      </div>
-    )}
-    {rank === 1 && (type === 'school' || type === 'class') && (
-      <div className="absolute top-3 right-3">
-        <div className="bg-white/10 text-white/60 text-[10px] font-black px-2 py-0.5 rounded border border-white/10 tracking-widest uppercase">
-          {type === 'school' ? 'ASST. SCHOOL LEADER' : 'ASST. CLASS LEADER'}
-        </div>
-      </div>
-    )}
     <div className="flex items-center gap-4">
-      <div className="relative">
+      <div className="relative shrink-0">
         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl
           ${rank === 0 ? 'bg-gold-500/20' : rank === 1 ? 'bg-white/10' : 'bg-white/5'}`}>
           {candidate.photo ? <img src={candidate.photo} alt={candidate.name} className="w-full h-full object-cover rounded-2xl" /> : candidate.symbolIcon}
@@ -41,9 +26,10 @@ const WinnerCard = ({ candidate, rank, type }) => (
           {rank + 1}
         </div>
       </div>
-      <div className="flex-1">
-        <h3 className={`font-bold ${rank === 0 ? 'text-gold-300' : 'text-white'}`}>{candidate.name}</h3>
-        <p className="text-white/40 text-xs">{candidate.symbol}</p>
+
+      <div className="flex-1 min-w-0">
+        <h3 className={`font-bold truncate ${rank === 0 ? 'text-gold-300' : 'text-white'}`}>{candidate.name}</h3>
+        <p className="text-white/40 text-xs truncate">{candidate.symbol}</p>
         <div className="mt-2 flex items-center gap-2">
           <div className="flex-1 bg-white/5 rounded-full h-1.5">
             <motion.div
@@ -56,9 +42,21 @@ const WinnerCard = ({ candidate, rank, type }) => (
           <span className="text-white/60 text-xs font-mono">{candidate.percentage}%</span>
         </div>
       </div>
-      <div className="text-right">
-        <p className={`text-2xl font-bold ${rank === 0 ? 'text-gold-400' : 'text-white'}`}>{candidate.voteCount}</p>
-        <p className="text-white/30 text-xs">votes</p>
+
+      <div className="text-right shrink-0 flex flex-col items-end justify-center">
+        {rank === 0 && (
+          <div className="flex items-center gap-1 mb-1.5 bg-gold-500/20 text-gold-400 text-[10px] font-black px-2 py-0.5 rounded border border-gold-500/30 tracking-widest uppercase">
+            <Crown size={12} className="text-gold-400" />
+            <span>{type === 'school' ? 'SCHOOL LEADER' : type === 'class' ? 'CLASS LEADER' : 'WINNER'}</span>
+          </div>
+        )}
+        {rank === 1 && (type === 'school' || type === 'class') && (
+          <div className="mb-1.5 bg-white/10 text-white/60 text-[10px] font-black px-2 py-0.5 rounded border border-white/10 tracking-widest uppercase">
+            {type === 'school' ? 'ASST. SCHOOL LEADER' : 'ASST. CLASS LEADER'}
+          </div>
+        )}
+        <p className={`text-2xl font-bold leading-none ${rank === 0 ? 'text-gold-400' : 'text-white'}`}>{candidate.voteCount}</p>
+        <p className="text-white/30 text-[10px] mt-0.5 uppercase tracking-wider font-semibold">votes</p>
       </div>
     </div>
   </motion.div>
