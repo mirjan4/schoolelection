@@ -5,6 +5,7 @@ import { resultsAPI } from '../../services/api'
 import { useSocket } from '../../context/SocketContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import toast from 'react-hot-toast'
+import ExportButtons from '../../components/ExportButtons'
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b', '#ef4444']
 
@@ -29,7 +30,10 @@ const WinnerCard = ({ candidate, rank, type }) => (
 
       <div className="flex-1 min-w-0">
         <h3 className={`font-bold truncate ${rank === 0 ? 'text-gold-300' : 'text-white'}`}>{candidate.name}</h3>
-        <p className="text-white/40 text-xs truncate">{candidate.symbol}</p>
+        <p className="text-white/60 text-xs truncate flex items-center gap-1 font-medium">
+          {candidate.symbolIcon && <span>{candidate.symbolIcon}</span>}
+          <span>{candidate.symbol}</span>
+        </p>
         <div className="mt-2 flex items-center gap-2">
           <div className="flex-1 bg-white/5 rounded-full h-1.5">
             <motion.div
@@ -96,17 +100,81 @@ export default function ResultsPage() {
   const schoolChartData = results?.schoolLeaders?.map(c => ({ name: c.name.split(' ')[0], Votes: c.voteCount, pct: c.percentage })) || []
   const classChartData = results?.classLeaders?.map(c => ({ name: c.name.split(' ')[0], Votes: c.voteCount })) || []
 
+  const isCollegeMode = results?.electionType === 'college'
+
+  const formatSymbol = (c) => {
+    if (!c) return 'N/A'
+    if (c.symbolIcon) return `${c.symbolIcon} ${c.symbol || ''}`.trim()
+    return c.symbol || 'N/A'
+  }
+
+  // Prepare flattened results for Print and PDF Export
+  const flattenedCollegeResults = (results?.positionResults || []).flatMap(({ position, candidates }) => {
+    return (candidates || []).map((c, idx) => ({
+      category: position.name,
+      rank: `#${idx + 1}`,
+      status: idx === 0 ? 'WINNER 👑' : `Rank ${idx + 1}`,
+      name: c.name,
+      symbol: formatSymbol(c),
+      voteCount: c.voteCount || 0,
+      percentage: `${c.percentage || 0}%`,
+    }))
+  })
+
+  const schoolLeaderExport = (results?.schoolLeaders || []).map((c, idx) => ({
+    category: 'School Leader',
+    rank: `#${idx + 1}`,
+    status: idx === 0 ? 'SCHOOL LEADER (WINNER 👑)' : idx === 1 ? 'ASST. SCHOOL LEADER' : `Rank ${idx + 1}`,
+    name: c.name,
+    symbol: formatSymbol(c),
+    voteCount: c.voteCount || 0,
+    percentage: `${c.percentage || 0}%`,
+  }))
+
+  const classLeadersExport = Object.entries(results?.classWiseResults || {}).flatMap(([cls, data]) => {
+    return (data.candidates || []).map((c, idx) => ({
+      category: `Class ${cls} Leader`,
+      rank: `#${idx + 1}`,
+      status: idx === 0 ? 'CLASS LEADER (WINNER 👑)' : idx === 1 ? 'ASST. CLASS LEADER' : `Rank ${idx + 1}`,
+      name: c.name,
+      symbol: formatSymbol(c),
+      voteCount: c.voteCount || 0,
+      percentage: `${c.percentage || 0}%`,
+    }))
+  })
+
+  const exportResultsData = isCollegeMode
+    ? flattenedCollegeResults
+    : [...schoolLeaderExport, ...classLeadersExport]
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">Election Results</h1>
           <p className="text-white/40 text-sm">Live results — updates automatically</p>
         </div>
-        <button onClick={() => fetchResults(true)} disabled={refreshing}
-          className="btn-ghost flex items-center gap-2 text-sm py-2">
-          <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          <ExportButtons
+            title="Official Election Final Results Report"
+            subtitle={`Election Type: ${isCollegeMode ? 'College Union Election' : 'School Election'}`}
+            columns={[
+              { header: 'Position / Category', dataKey: 'category' },
+              { header: 'Rank', dataKey: 'rank' },
+              { header: 'Result Status', dataKey: 'status' },
+              { header: 'Candidate Name', dataKey: 'name' },
+              { header: 'Symbol / Party', dataKey: 'symbol' },
+              { header: 'Votes Cast', dataKey: 'voteCount' },
+              { header: 'Percentage', dataKey: 'percentage' },
+            ]}
+            data={exportResultsData}
+            fileName="Election_Results_Report.pdf"
+          />
+          <button onClick={() => fetchResults(true)} disabled={refreshing}
+            className="btn-ghost flex items-center gap-2 text-sm py-2">
+            <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> Refresh
+          </button>
+        </div>
       </div>
 
       {results?.electionType === 'college' ? (

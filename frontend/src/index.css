@@ -182,3 +182,156 @@
   background: rgba(34, 197, 94, 0.3);
   animation: ripple 0.8s ease-out forwards;
 }
+
+/* ── DEDICATED PRINT MEDIA STYLES ──────────────────────── */
+.print-only {
+  display: none;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 1. Hide the entire Web Application UI */
+  body, html {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  header,
+  aside,
+  nav,
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  .no-print,
+  .toaster,
+  .fixed,
+  .backdrop-blur-md,
+  .backdrop-blur-sm,
+  [role="dialog"],
+  [role="status"] {
+    display: none !important;
+  }
+
+  /* 2. Reset all main layout containers */
+  main, div, section, article, .flex-1 {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    float: none !important;
+  }
+
+  /* 3. Dedicated Printable Report Container (Fills 100% A4 width) */
+  body:not([data-print-active-id]) .print-only {
+    display: block !important;
+  }
+
+  body[data-print-active-id] .print-only {
+    display: none !important;
+  }
+
+  body[data-print-active-id] .print-only.active-print-target {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    visibility: visible !important;
+  }
+
+  .print-only * {
+    visibility: visible !important;
+  }
+
+  .print-header {
+    margin-bottom: 12px !important;
+    width: 100% !important;
+  }
+
+  /* 4. Dedicated Data Table (Full 100% printable page width) */
+  .print-table {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+    margin-top: 10px !important;
+    margin-bottom: 30px !important;
+    color: #0f172a !important;
+  }
+
+  .print-table th {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    border: 1px solid #0f172a !important;
+    text-align: left !important;
+    word-break: break-word !important;
+  }
+
+  .print-table td {
+    padding: 7px 10px !important;
+    font-size: 10.5px !important;
+    color: #1e293b !important;
+    border: 1px solid #94a3b8 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+    vertical-align: middle !important;
+  }
+
+  .print-table tbody tr:nth-child(even) td {
+    background-color: #f8fafc !important;
+  }
+
+  .print-table thead {
+    display: table-header-group !important;
+  }
+
+  .print-table tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* 5. Fixed Printable Footer */
+  .print-footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    font-size: 9px !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    border-top: 1.5px solid #0f172a !important;
+    padding-top: 5px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    background: #ffffff !important;
+  }
+}
+
+
+

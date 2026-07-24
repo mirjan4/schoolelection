@@ -5,6 +5,8 @@ import { Plus, Edit2, Trash2, Search, Users, CheckCircle, XCircle, FileUp, Info 
 import { studentsAPI, boothsAPI, electionAPI } from '../../services/api'
 import toast from 'react-hot-toast'
 
+import ExportButtons from '../../components/ExportButtons'
+
 const emptyForm = { admissionNo: '', name: '', class: '', section: '', boothId: '' }
 
 export default function StudentsPage() {
@@ -181,6 +183,72 @@ export default function StudentsPage() {
               <Trash2 size={16} /> Delete Selected ({selectedIds.length})
             </button>
           )}
+          <ExportButtons
+            title={filterBooth ? 'Booth Student List' : 'Enrolled Students Directory Report'}
+            subtitle={
+              filterBooth
+                ? `Booth: ${booths.find((b) => b._id === filterBooth)?.name || 'Selected Booth'}`
+                : 'All Enrolled Students'
+            }
+            boothDetails={
+              filterBooth
+                ? {
+                    name: booths.find((b) => b._id === filterBooth)?.name || 'Selected Booth',
+                    code: booths.find((b) => b._id === filterBooth)?.code || 'N/A',
+                    location: booths.find((b) => b._id === filterBooth)?.location || 'N/A',
+                  }
+                : null
+            }
+            printedBy="Super Admin"
+            columns={
+              filterBooth
+                ? [
+                    { header: 'Admission No', dataKey: 'admissionNo' },
+                    { header: 'Student Name', dataKey: 'name' },
+                    { header: 'Class', dataKey: 'class' },
+                    { header: 'Section', cell: (s) => s.section || 'N/A' },
+                    {
+                      header: 'Voting Status',
+                      cell: (s) => {
+                        if (election?.type === 'school') {
+                          if (s.hasVotedSchoolLeader && s.hasVotedClassLeader) return 'Voted (All)'
+                          if (s.hasVotedClassLeader) return 'Voted (Class)'
+                          if (s.hasVotedSchoolLeader) return 'Voted (School)'
+                          return 'Not Voted'
+                        }
+                        return s.hasVotedCollege ? 'Voted' : 'Not Voted'
+                      },
+                    },
+                  ]
+                : [
+                    { header: 'Admission No', dataKey: 'admissionNo' },
+                    { header: 'Student Name', dataKey: 'name' },
+                    { header: 'Class', cell: (s) => `Class ${s.class}${s.section || ''}` },
+                    {
+                      header: 'Assigned Booth',
+                      cell: (s) => (s.boothId?.name ? `${s.boothId.name} (${s.boothId.code})` : 'Unassigned'),
+                    },
+                    {
+                      header: 'Voting Status',
+                      cell: (s) => {
+                        if (election?.type === 'school') {
+                          if (s.hasVotedSchoolLeader && s.hasVotedClassLeader) return 'Voted (All)'
+                          if (s.hasVotedClassLeader) return 'Voted (Class)'
+                          if (s.hasVotedSchoolLeader) return 'Voted (School)'
+                          return 'Not Voted'
+                        }
+                        return s.hasVotedCollege ? 'Voted' : 'Not Voted'
+                      },
+                    },
+                  ]
+            }
+            data={filtered}
+            fileName={
+              filterBooth
+                ? `Booth_${booths.find((b) => b._id === filterBooth)?.code || 'Report'}_Student_List.pdf`
+                : 'Students_Directory_Report.pdf'
+            }
+          />
           <label className={`btn-ghost flex items-center gap-2 cursor-pointer ${importing ? 'opacity-50 pointer-events-none' : ''}`}>
             <FileUp size={18} />
             {importing ? 'Importing...' : 'Import Excel'}

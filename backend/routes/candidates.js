@@ -15,6 +15,11 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
+const candidateUpload = upload.fields([
+  { name: 'photo', maxCount: 1 },
+  { name: 'symbolImage', maxCount: 1 },
+]);
+
 // @GET /api/candidates
 router.get('/', async (req, res) => {
   try {
@@ -31,10 +36,15 @@ router.get('/', async (req, res) => {
 });
 
 // @POST /api/candidates
-router.post('/', protect, superAdmin, upload.single('photo'), async (req, res) => {
+router.post('/', protect, superAdmin, candidateUpload, async (req, res) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.photo = `/uploads/candidates/${req.file.filename}`;
+    if (req.files?.photo?.[0]) {
+      data.photo = `/uploads/candidates/${req.files.photo[0].filename}`;
+    }
+    if (req.files?.symbolImage?.[0]) {
+      data.symbolImage = `/uploads/candidates/${req.files.symbolImage[0].filename}`;
+    }
     const candidate = await Candidate.create(data);
     res.status(201).json({ success: true, data: candidate });
   } catch (err) {
@@ -43,10 +53,15 @@ router.post('/', protect, superAdmin, upload.single('photo'), async (req, res) =
 });
 
 // @PUT /api/candidates/:id
-router.put('/:id', protect, superAdmin, upload.single('photo'), async (req, res) => {
+router.put('/:id', protect, superAdmin, candidateUpload, async (req, res) => {
   try {
     const data = { ...req.body };
-    if (req.file) data.photo = `/uploads/candidates/${req.file.filename}`;
+    if (req.files?.photo?.[0]) {
+      data.photo = `/uploads/candidates/${req.files.photo[0].filename}`;
+    }
+    if (req.files?.symbolImage?.[0]) {
+      data.symbolImage = `/uploads/candidates/${req.files.symbolImage[0].filename}`;
+    }
     const candidate = await Candidate.findByIdAndUpdate(req.params.id, data, {
       new: true, runValidators: true,
     });

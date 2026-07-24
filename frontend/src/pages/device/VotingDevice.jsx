@@ -299,7 +299,10 @@ export default function VotingDevice() {
         )}
       </div>
       <h3 className={`text-white font-bold text-center ${big ? 'text-2xl' : 'text-lg'}`}>{candidate.name}</h3>
-      <p className="text-white/50 text-sm text-center">{candidate.symbol}</p>
+      <p className="text-white/70 text-sm text-center font-medium flex items-center justify-center gap-1.5 mt-1">
+        {candidate.symbolIcon && <span className="text-base">{candidate.symbolIcon}</span>}
+        <span>{candidate.symbol}</span>
+      </p>
       {selected && (
         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute top-3 right-3">
           <CheckCircle size={24} className="text-primary-400" />

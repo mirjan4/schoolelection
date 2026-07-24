@@ -5,6 +5,7 @@ import { studentsAPI, electionAPI } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { useSocket } from '../../context/SocketContext'
 import toast from 'react-hot-toast'
+import ExportButtons from '../../components/ExportButtons'
 
 const STATUS_CONFIG = {
   idle: { label: 'Ready', color: 'text-white/40', bg: 'bg-white/5', icon: Clock },
@@ -150,9 +151,30 @@ export default function BoothAdminPanel() {
         {/* Student selection panel */}
         <div className="lg:col-span-2 space-y-4">
           <div className="glass-card p-5">
-            <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <Search size={16} className="text-primary-400" /> Select Student
-            </h2>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <h2 className="text-white font-semibold flex items-center gap-2">
+                <Search size={16} className="text-primary-400" /> Select Student
+              </h2>
+              <ExportButtons
+                title="Booth Student List"
+                subtitle={`Booth: ${user?.boothId?.name || 'Assigned Booth'} (${user?.boothId?.code || ''})`}
+                boothDetails={{
+                  name: user?.boothId?.name || 'Assigned Booth',
+                  code: user?.boothId?.code || 'N/A',
+                  location: user?.boothId?.location || 'N/A',
+                }}
+                printedBy={user?.name || 'Booth Admin'}
+                columns={[
+                  { header: 'Admission No', dataKey: 'admissionNo' },
+                  { header: 'Student Name', dataKey: 'name' },
+                  { header: 'Class', dataKey: 'class' },
+                  { header: 'Section', cell: (s) => s.section || 'N/A' },
+                  { header: 'Voting Status', cell: (s) => (s.hasVoted ? 'Voted' : 'Not Voted') },
+                ]}
+                data={displayStudents}
+                fileName={`Booth_${user?.boothId?.code || 'Roster'}_Student_List.pdf`}
+              />
+            </div>
 
             {/* Search */}
             <div className="relative mb-4">
@@ -174,7 +196,7 @@ export default function BoothAdminPanel() {
             {/* Student list */}
             <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-hide">
               <AnimatePresence>
-                {students.map(s => {
+                {displayStudents.map(s => {
                   const hasVoted = s.hasVoted
                   const isSelected = selectedStudent?._id === s._id
                   return (

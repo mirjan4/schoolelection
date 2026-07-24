@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Edit2, Trash2, Trophy, Star, ShieldAlert, BookOpen, Layers } from 'lucide-react'
+import { Plus, Edit2, Trash2, Trophy, Star, ShieldAlert, BookOpen, Layers, Upload } from 'lucide-react'
 import { candidatesAPI, electionAPI, positionsAPI, studentsAPI } from '../../services/api'
 import toast from 'react-hot-toast'
+import ExportButtons from '../../components/ExportButtons'
 
 const emptyForm = {
   name: '',
   symbol: '',
   symbolIcon: '⭐',
+  symbolType: 'icon',
+  symbolImage: '',
   electionType: 'school_leader',
   positionId: '',
   department: '',
@@ -17,7 +20,14 @@ const emptyForm = {
   active: true,
 }
 
-const ICONS = ['⭐', '🦁', '🦅', '🌺', '⚡', '🎯', '🌟', '🏆', '🔥', '💎', '🌙', '🎪']
+const ICONS = [
+  '⭐', '🌟', '🏆', '🥇', '🎯', '💎', '👑', '🎖️', '🎗️', '🏅',
+  '🦁', '🦅', '🐘', '🐴', '🐯', '🐉', '🕊️', '🐬', '🐝', '🐺',
+  '🌺', '🌴', '🌲', '🌸', '🌻', '☀️', '🌙', '⚡', '🔥', '🌊',
+  '🚀', '⚓', '💡', '🔑', '🎓', '📖', '✏️', '🎨', '⚽', '🔔',
+  '🏹', '🛡️', '🧭', '🎤', '🎺', '📻', '🚗', '⛵', '✈️', '🚲',
+  '☮️', '☯️', '☸️', '♾️', '💖', '🤝', '✊', '✌️', '🕯️', '⚖️',
+]
 
 export default function CandidatesPage() {
   const [candidates, setCandidates] = useState([])
@@ -30,6 +40,8 @@ export default function CandidatesPage() {
   const [editItem, setEditItem] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [photoFile, setPhotoFile] = useState(null)
+  const [symbolImageFile, setSymbolImageFile] = useState(null)
+  const [symbolImagePreview, setSymbolImagePreview] = useState('')
   const [saving, setSaving] = useState(false)
 
   // Student Search Dropdown States
@@ -83,6 +95,8 @@ export default function CandidatesPage() {
       positionId: positions[0]?._id || '',
     })
     setPhotoFile(null)
+    setSymbolImageFile(null)
+    setSymbolImagePreview('')
     setEditItem(null)
     setStudentSearch('')
     setShowDropdown(false)
@@ -94,6 +108,8 @@ export default function CandidatesPage() {
       name: c.name,
       symbol: c.symbol,
       symbolIcon: c.symbolIcon || '⭐',
+      symbolType: c.symbolType || 'icon',
+      symbolImage: c.symbolImage || '',
       electionType: c.electionType || (isCollege ? 'college_position' : 'school_leader'),
       positionId: c.positionId?._id || c.positionId || '',
       department: c.department || '',
@@ -103,6 +119,8 @@ export default function CandidatesPage() {
       active: c.active,
     })
     setPhotoFile(null)
+    setSymbolImageFile(null)
+    setSymbolImagePreview(c.symbolImage || '')
     setEditItem(c)
     setStudentSearch(c.name)
     setShowDropdown(false)
@@ -117,6 +135,7 @@ export default function CandidatesPage() {
       const fd = new FormData()
       Object.entries(form).forEach(([k, v]) => fd.append(k, v))
       if (photoFile) fd.append('photo', photoFile)
+      if (symbolImageFile && form.symbolType === 'image') fd.append('symbolImage', symbolImageFile)
 
       if (editItem) {
         await candidatesAPI.update(editItem._id, fd)
@@ -132,6 +151,26 @@ export default function CandidatesPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const handleSymbolImageSelect = (file) => {
+    if (!file) return
+    setSymbolImageFile(file)
+    const reader = new FileReader()
+    reader.onload = (e) => setSymbolImagePreview(e.target.result)
+    reader.readAsDataURL(file)
+  }
+
+  const handleSymbolImageDrop = (e) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files?.[0]
+    if (file && file.type.startsWith('image/')) handleSymbolImageSelect(file)
+  }
+
+  const removeSymbolImage = () => {
+    setSymbolImageFile(null)
+    setSymbolImagePreview('')
+    setForm({ ...form, symbolImage: '' })
   }
 
   const handleDelete = async (id) => {
@@ -151,13 +190,22 @@ export default function CandidatesPage() {
         <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
           {c.photo ? (
             <img src={c.photo} alt={c.name} className="w-full h-full object-cover" />
+          ) : c.symbolType === 'image' && c.symbolImage ? (
+            <img src={c.symbolImage} alt={c.symbol} className="w-full h-full object-contain p-1" />
           ) : (
-            c.symbolIcon
+            c.symbolIcon || '⭐'
           )}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-white font-bold truncate text-base">{c.name}</h3>
-          <p className="text-white/40 text-xs truncate">{c.symbol}</p>
+          <p className="text-white/70 text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
+            {c.symbolType === 'image' && c.symbolImage ? (
+              <img src={c.symbolImage} alt={c.symbol} className="w-4 h-4 object-contain rounded" />
+            ) : c.symbolIcon ? (
+              <span className="text-sm">{c.symbolIcon}</span>
+            ) : null}
+            <span>{c.symbol}</span>
+          </p>
           {isCollege ? (
             <div className="text-[10px] text-white/50 space-y-0.5 mt-1">
               {c.department && <p>Dept: {c.department}</p>}
@@ -245,6 +293,50 @@ export default function CandidatesPage() {
               </button>
             </div>
           )}
+          <ExportButtons
+            title="Registered Candidates Report"
+            subtitle={isCollege ? 'College Union Election' : 'School Election'}
+            columns={[
+              { header: 'Candidate Name', dataKey: 'name' },
+              {
+                header: 'Symbol / Party',
+                cell: (c) =>
+                  c.symbolType === 'image' && c.symbolImage ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <img
+                        src={c.symbolImage}
+                        alt={c.symbol}
+                        style={{ width: '20px', height: '20px', objectFit: 'contain', borderRadius: '3px', verticalAlign: 'middle' }}
+                      />
+                      <span>{c.symbol || ''}</span>
+                    </span>
+                  ) : (
+                    `${c.symbolIcon || ''} ${c.symbol || ''}`.trim() || 'N/A'
+                  ),
+              },
+              {
+                header: 'Contesting Position',
+                cell: (c) =>
+                  isCollege
+                    ? c.positionId?.name || 'Position'
+                    : c.electionType === 'class_leader'
+                    ? `Class Leader`
+                    : 'School Leader',
+              },
+              {
+                header: 'Dept / Class',
+                cell: (c) =>
+                  isCollege
+                    ? c.department
+                      ? `${c.department}${c.year ? ` (Year ${c.year})` : ''}`
+                      : c.class || 'N/A'
+                    : `Class ${c.class}`,
+              },
+              { header: 'Vote Count', dataKey: 'voteCount' },
+            ]}
+            data={candidates}
+            fileName="Candidates_Roster_Report.pdf"
+          />
           <button onClick={openCreate} className="btn-primary flex items-center gap-2 flex-shrink-0">
             <Plus size={18} /> Add Candidate
           </button>
@@ -498,23 +590,133 @@ export default function CandidatesPage() {
                 </div>
 
                 <div>
-                  <label className="text-white/60 text-sm block mb-2">Symbol Icon</label>
-                  <div className="flex flex-wrap gap-2">
-                    {ICONS.map((ic) => (
-                      <button
-                        key={ic}
-                        type="button"
-                        onClick={() => setForm({ ...form, symbolIcon: ic })}
-                        className={`w-10 h-10 rounded-xl text-xl transition-all ${
-                          form.symbolIcon === ic
-                            ? 'bg-primary-500/30 border-2 border-primary-400'
-                            : 'bg-white/5 hover:bg-white/10 border border-transparent'
-                        }`}
-                      >
-                        {ic}
-                      </button>
-                    ))}
+                  <label className="text-white/60 text-sm font-semibold block mb-2">Symbol Icon</label>
+
+                  {/* Radio Toggle */}
+                  <div className="flex gap-3 mb-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="symbolType"
+                        value="icon"
+                        checked={form.symbolType === 'icon'}
+                        onChange={() => setForm({ ...form, symbolType: 'icon' })}
+                        className="w-4 h-4 accent-primary-500"
+                      />
+                      <span className={`text-sm font-medium ${form.symbolType === 'icon' ? 'text-white' : 'text-white/40'}`}>
+                        Choose from Symbol List
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="symbolType"
+                        value="image"
+                        checked={form.symbolType === 'image'}
+                        onChange={() => setForm({ ...form, symbolType: 'image' })}
+                        className="w-4 h-4 accent-primary-500"
+                      />
+                      <span className={`text-sm font-medium ${form.symbolType === 'image' ? 'text-white' : 'text-white/40'}`}>
+                        Choose File
+                      </span>
+                    </label>
                   </div>
+
+                  {/* Icon Picker */}
+                  {form.symbolType === 'icon' && (
+                    <div className="space-y-2">
+                      {form.symbolIcon && (
+                        <span className="text-xs text-primary-400 font-bold flex items-center gap-1.5 bg-primary-500/10 px-2 py-0.5 rounded-lg border border-primary-500/20 w-fit">
+                          Selected: <span className="text-base">{form.symbolIcon}</span>
+                        </span>
+                      )}
+                      <input
+                        type="text"
+                        className="form-input text-sm"
+                        value={form.symbolIcon}
+                        onChange={(e) => setForm({ ...form, symbolIcon: e.target.value })}
+                        placeholder="Type or paste custom emoji (e.g. 🦁, 🦅, 🚀)..."
+                      />
+                      <div className="max-h-36 overflow-y-auto p-2 bg-white/5 rounded-xl border border-white/10">
+                        <p className="text-[10px] uppercase font-bold tracking-wider text-white/30 mb-1.5">
+                          Choose from Symbol List
+                        </p>
+                        <div className="grid grid-cols-7 sm:grid-cols-10 gap-1">
+                          {ICONS.map((ic) => (
+                            <button
+                              key={ic}
+                              type="button"
+                              onClick={() => setForm({ ...form, symbolIcon: ic })}
+                              className={`h-8 w-8 rounded-lg text-lg flex items-center justify-center transition-all ${
+                                form.symbolIcon === ic
+                                  ? 'bg-primary-500 text-white shadow scale-105 border border-primary-300'
+                                  : 'bg-white/5 hover:bg-white/15 text-white/80 border border-transparent'
+                              }`}
+                              title={`Select ${ic}`}
+                            >
+                              {ic}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Image Upload */}
+                  {form.symbolType === 'image' && (
+                    <div>
+                      {symbolImagePreview ? (
+                        <div className="border border-white/10 rounded-xl p-4 bg-white/5 flex flex-col items-center gap-3">
+                          <p className="text-[10px] uppercase font-bold tracking-wider text-white/30">Preview</p>
+                          <img
+                            src={symbolImagePreview}
+                            alt="Symbol preview"
+                            className="w-20 h-20 object-contain rounded-xl bg-white/5 p-1"
+                          />
+                          <div className="flex gap-2">
+                            <label className="cursor-pointer px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-all flex items-center gap-1.5">
+                              <Upload size={12} /> Replace
+                              <input
+                                type="file"
+                                accept="image/png,image/jpg,image/jpeg,image/svg+xml,image/webp"
+                                className="hidden"
+                                onChange={(e) => handleSymbolImageSelect(e.target.files[0])}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              onClick={removeSymbolImage}
+                              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 transition-all"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={handleSymbolImageDrop}
+                          className="border-2 border-dashed border-white/15 hover:border-primary-500/50 rounded-xl p-5 text-center transition-all cursor-pointer bg-white/3 hover:bg-primary-500/5"
+                        >
+                          <Upload size={22} className="mx-auto text-white/30 mb-2" />
+                          <p className="text-white/60 text-sm font-semibold mb-0.5">Drag & Drop Image Here</p>
+                          <p className="text-white/30 text-xs mb-3">or</p>
+                          <label className="cursor-pointer inline-block px-4 py-1.5 rounded-lg text-xs font-semibold bg-primary-600/20 hover:bg-primary-600/30 text-primary-300 border border-primary-500/30 transition-all">
+                            Choose Image
+                            <input
+                              type="file"
+                              accept="image/png,image/jpg,image/jpeg,image/svg+xml,image/webp"
+                              className="hidden"
+                              onChange={(e) => handleSymbolImageSelect(e.target.files[0])}
+                            />
+                          </label>
+                          <p className="text-white/20 text-[10px] mt-3 font-semibold tracking-wider">
+                            PNG • JPG • SVG • WEBP
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div>

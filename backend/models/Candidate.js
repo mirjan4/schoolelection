@@ -18,6 +18,15 @@ const candidateSchema = new mongoose.Schema({
     type: String,
     default: '⭐',
   },
+  symbolType: {
+    type: String,
+    enum: ['icon', 'image'],
+    default: 'icon',
+  },
+  symbolImage: {
+    type: String,
+    default: '',
+  },
   electionType: {
     type: String,
     enum: ['class_leader', 'school_leader', 'college_position'],

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Edit2, Trash2, UserCog } from 'lucide-react'
 import { usersAPI, boothsAPI } from '../../services/api'
 import toast from 'react-hot-toast'
+import ExportButtons from '../../components/ExportButtons'
 
 const emptyForm = { name: '', email: '', password: '', boothId: '', isActive: true }
 
@@ -59,7 +60,26 @@ export default function UsersPage() {
           <h1 className="text-2xl font-bold text-white">Booth Admins</h1>
           <p className="text-white/40 text-sm">{users.length} admins configured</p>
         </div>
-        <button onClick={openCreate} className="btn-primary flex items-center gap-2"><Plus size={18} /> Add Admin</button>
+        <div className="flex items-center gap-3">
+          <ExportButtons
+            title="Booth Admin Accounts Report"
+            subtitle="Configured booth administrator user accounts and assignments"
+            columns={[
+              { header: 'Admin Name', dataKey: 'name' },
+              { header: 'Email Address', dataKey: 'email' },
+              {
+                header: 'Assigned Booth',
+                cell: (u) => (u.boothId ? `${u.boothId.name} (${u.boothId.code})` : 'Unassigned'),
+              },
+              { header: 'Account Status', cell: (u) => (u.isActive ? 'Active' : 'Inactive') },
+            ]}
+            data={users}
+            fileName="Booth_Admins_Report.pdf"
+          />
+          <button onClick={openCreate} className="btn-primary flex items-center gap-2">
+            <Plus size={18} /> Add Admin
+          </button>
+        </div>
       </div>
 
       <div className="glass-card overflow-hidden">

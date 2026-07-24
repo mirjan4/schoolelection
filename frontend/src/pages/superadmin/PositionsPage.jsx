@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Edit2, Trash2, Layers, CheckCircle2, AlertTriangle, Hash, ArrowUpDown, Power } from 'lucide-react'
 import { positionsAPI } from '../../services/api'
 import toast from 'react-hot-toast'
+import ExportButtons from '../../components/ExportButtons'
 
 const emptyForm = { name: '', maxVotes: 1, displayOrder: 0, active: true }
 
@@ -95,9 +96,23 @@ export default function PositionsPage() {
           <h1 className="text-2xl font-bold text-white">College Positions</h1>
           <p className="text-white/40 text-sm">{positions.length} positions defined for College Mode</p>
         </div>
-        <button onClick={openCreate} className="btn-primary flex items-center gap-2">
-          <Plus size={18} /> Add Position
-        </button>
+        <div className="flex items-center gap-3">
+          <ExportButtons
+            title="College Positions Overview Report"
+            subtitle="Configured positions for College Union Election"
+            columns={[
+              { header: 'Display Order', dataKey: 'displayOrder' },
+              { header: 'Position Name', dataKey: 'name' },
+              { header: 'Max Votes Allowed', dataKey: 'maxVotes' },
+              { header: 'Status', cell: (p) => (p.active ? 'Active' : 'Inactive') },
+            ]}
+            data={positions}
+            fileName="College_Positions_Report.pdf"
+          />
+          <button onClick={openCreate} className="btn-primary flex items-center gap-2">
+            <Plus size={18} /> Add Position
+          </button>
+        </div>
       </div>
 
       {loading ? (

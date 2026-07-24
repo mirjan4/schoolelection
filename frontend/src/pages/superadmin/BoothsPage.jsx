@@ -8,6 +8,7 @@ import {
 import { boothsAPI, electionAPI, studentsAPI } from '../../services/api'
 import { useSocket } from '../../context/SocketContext'
 import toast from 'react-hot-toast'
+import ExportButtons from '../../components/ExportButtons'
 
 const emptyForm = { name: '', code: '', location: '', minVoters: 10, maxVoters: 100, active: true }
 
@@ -28,16 +29,19 @@ export default function BoothsPage() {
   const [studentsToTransfer, setStudentsToTransfer] = useState([])
   const [searchStudent, setSearchStudent] = useState('')
   const [availableStudents, setAvailableStudents] = useState([])
+  const [allStudents, setAllStudents] = useState([])
   const [transferring, setTransferring] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
-      const [bRes, sRes] = await Promise.all([
+      const [bRes, sRes, stRes] = await Promise.all([
         boothsAPI.getAll(),
-        electionAPI.getStats()
+        electionAPI.getStats(),
+        studentsAPI.getAll()
       ])
       setBooths(bRes.data.data)
       setStats(sRes.data.data)
+      setAllStudents(stRes.data.data)
     } catch (err) { 
       toast.error('Failed to load booth data') 
     } finally { 
@@ -165,6 +169,32 @@ export default function BoothsPage() {
               Voter Allocation
             </button>
           </div>
+          <ExportButtons
+            title="Official Booth-Wise Student List Report"
+            subtitle="Complete directory of enrolled voters grouped by assigned voting booths"
+            columns={[
+              { header: 'Admission No', dataKey: 'admissionNo' },
+              { header: 'Student Name', dataKey: 'name' },
+              { header: 'Class / Section', cell: (s) => `Class ${s.class}${s.section || ''}` },
+              {
+                header: 'Assigned Booth',
+                cell: (s) => (s.boothId?.name ? `${s.boothId.name} (${s.boothId.code})` : 'Unassigned'),
+              },
+              {
+                header: 'Voting Status',
+                cell: (s) =>
+                  s.hasVotedCollege || s.hasVotedSchoolLeader || s.hasVotedClassLeader
+                    ? 'Voted'
+                    : 'Not Voted',
+              },
+            ]}
+            data={[...allStudents].sort((a, b) => {
+              const codeA = a.boothId?.code || 'ZZZ'
+              const codeB = b.boothId?.code || 'ZZZ'
+              return codeA.localeCompare(codeB)
+            })}
+            fileName="Booth_Wise_Student_List_Report.pdf"
+          />
           <button onClick={openCreate} className="btn-primary flex items-center gap-2">
             <Plus size={18} /> Add Booth
           </button>
@@ -221,19 +251,63 @@ export default function BoothsPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => handleTransferClick(bs.booth)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/60 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-2"
-                >
-                  <ArrowRightLeft size={14} /> Rebalance
-                </button>
-                <button 
-                  onClick={() => openEdit(bs.booth)}
-                  className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/40 hover:text-white transition-all"
-                >
-                  <Edit2 size={14} />
-                </button>
+              <div className="flex gap-2 flex-wrap items-center justify-between">
+                <ExportButtons
+                  title="Booth Student List"
+                  subtitle={`Booth: ${bs.booth.name} (${bs.booth.code})`}
+                  boothDetails={{
+                    name: bs.booth.name,
+                    code: bs.booth.code,
+                    location: bs.booth.location || 'N/A',
+                  }}
+                  printedBy="Super Admin"
+                  columns={[
+                    { header: 'Admission No', dataKey: 'admissionNo' },
+                    { header: 'Student Name', dataKey: 'name' },
+                    { header: 'Class', dataKey: 'class' },
+                    { header: 'Section', cell: (s) => s.section || 'N/A' },
+                    {
+                      header: 'Voting Status',
+                      cell: (s) =>
+                        s.hasVotedCollege || s.hasVotedSchoolLeader || s.hasVotedClassLeader
+                          ? 'Voted'
+                          : 'Not Voted',
+                    },
+                  ]}
+                  data={(() => {
+                    const filteredList = allStudents.filter((s) => {
+                      if (!s) return false
+                      const bId = s.boothId?._id
+                        ? String(s.boothId._id)
+                        : s.assignedBoothId?._id
+                        ? String(s.assignedBoothId._id)
+                        : String(s.boothId || s.assignedBoothId || s.assignedBooth || '')
+                      return bId === String(bs.booth._id)
+                    })
+                    console.log(
+                      `[Booth Print Debug] Booth: ${bs.booth.name} (${bs.booth.code}), Total Filtered Students: ${filteredList.length}`,
+                      filteredList
+                    )
+                    return filteredList
+                  })()}
+                  fileName={`Booth_${bs.booth.code}_Student_List.pdf`}
+                />
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleTransferClick(bs.booth)}
+                    className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/60 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+                    title="Rebalance Voter Allocation"
+                  >
+                    <ArrowRightLeft size={14} /> Rebalance
+                  </button>
+                  <button 
+                    onClick={() => openEdit(bs.booth)}
+                    className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-white/40 hover:text-white transition-all"
+                    title="Edit Booth Details"
+                  >
+                    <Edit2 size={14} />
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
