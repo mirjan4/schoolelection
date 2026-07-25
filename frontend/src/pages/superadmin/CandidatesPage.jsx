@@ -51,7 +51,7 @@ export default function CandidatesPage() {
   const fetchData = async () => {
     try {
       const [cRes, bRes, eRes, sRes] = await Promise.all([
-        candidatesAPI.getAll(),
+        candidatesAPI.getAll({ _t: Date.now() }), // cache-buster: always fetch fresh list
         positionsAPI.getAll({ active: true }),
         electionAPI.status(),
         studentsAPI.getAll(),
@@ -176,11 +176,14 @@ export default function CandidatesPage() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this candidate?')) return
     try {
+      // Optimistic update: remove from state immediately so print report stays in sync
+      setCandidates(prev => prev.filter(c => c._id !== id))
       await candidatesAPI.delete(id)
       toast.success('Candidate deleted successfully')
-      fetchData()
+      fetchData() // re-sync with server to confirm
     } catch {
       toast.error('Failed to delete candidate')
+      fetchData() // revert optimistic update on failure
     }
   }
 

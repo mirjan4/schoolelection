@@ -115,6 +115,9 @@ export default function BoothAdminPanel() {
   const totalCount = stats?.totalStudents || 0
   const turnout = totalCount > 0 ? Math.round((votedCount / totalCount) * 100) : 0
 
+  // Students already filtered by boothId + search via API; alias for the export/list
+  const displayStudents = students
+
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-5">
       {/* Status Banner */}
