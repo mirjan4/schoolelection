@@ -333,7 +333,6 @@ export default function CandidatesPage() {
           )}
           <ExportButtons
             title="Registered Candidates Report"
-            subtitle={isCollege ? 'College Union Election' : 'School Election'}
             columns={[
               { header: 'Candidate Name', dataKey: 'name' },
               {

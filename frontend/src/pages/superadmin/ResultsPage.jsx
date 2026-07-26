@@ -197,7 +197,6 @@ export default function ResultsPage() {
         <div className="flex items-center gap-3">
           <ExportButtons
             title="Official Election Final Results Report"
-            subtitle={`Election Type: ${isCollegeMode ? 'College Union Election' : 'School Election'}`}
             summaryData={summaryData}
             columns={[
               { header: 'Position / Category', dataKey: 'category' },

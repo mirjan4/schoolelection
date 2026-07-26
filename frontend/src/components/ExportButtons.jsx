@@ -90,24 +90,7 @@ export default function ExportButtons({
       {/* Official Centered Government / Institution Header */}
       <div className="print-header" style={{ textAlign: 'center', marginBottom: '20px' }}>
         {/* Crest Logo Emblem */}
-        <div
-          style={{
-            width: '36px',
-            height: '36px',
-            backgroundColor: '#0f172a',
-            borderRadius: '8px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            fontWeight: '900',
-            fontSize: '18px',
-            margin: '0 auto 8px auto',
-            border: '2px solid #3b82f6',
-          }}
-        >
-          V
-        </div>
+        
 
         {/* Organization / Election Name (18px Bold) */}
         <h1
@@ -225,7 +208,7 @@ export default function ExportButtons({
               pageBreakAfter: 'avoid',
             }}
           >
-            🏆 TOP WINNERS SUMMARY
+            TOP WINNERS
           </div>
 
           <div
