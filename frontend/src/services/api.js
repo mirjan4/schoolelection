@@ -86,6 +86,7 @@ export const candidatesAPI = {
 // ─── VOTES ──────────────────────────────────────────
 export const votesAPI = {
   cast: (data) => api.post('/votes', data),
+  castBulk: (data) => api.post('/votes/bulk', data),
   getBoothVotes: (boothId) => api.get(`/votes/booth/${boothId}`),
 }
 

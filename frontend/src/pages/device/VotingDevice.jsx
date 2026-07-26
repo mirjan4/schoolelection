@@ -327,29 +327,31 @@ export default function VotingDevice() {
           })
         })
 
-        // Sequentially cast votes
-        for (let i = 0; i < votesToCast.length; i++) {
-          const votePayload = { ...votesToCast[i] }
-          if (i === votesToCast.length - 1) {
-            votePayload.isLastVote = true
-          }
-          await votesAPI.cast(votePayload)
+        if (votesToCast.length > 0) {
+          await votesAPI.castBulk({ votes: votesToCast, studentId: student._id, boothId })
         }
       } else {
-        // Cast School Mode votes
-        await votesAPI.cast({
-          studentId: student._id,
-          candidateId: selections.class_leader,
-          electionType: 'class_leader',
-          boothId,
-        })
-        await votesAPI.cast({
-          studentId: student._id,
-          candidateId: selections.school_leader,
-          electionType: 'school_leader',
-          boothId,
-          isLastVote: true, // will trigger voted update
-        })
+        // Collect School Mode votes
+        const schoolVotes = []
+        if (selections.class_leader) {
+          schoolVotes.push({
+            studentId: student._id,
+            candidateId: selections.class_leader,
+            electionType: 'class_leader',
+            boothId,
+          })
+        }
+        if (selections.school_leader) {
+          schoolVotes.push({
+            studentId: student._id,
+            candidateId: selections.school_leader,
+            electionType: 'school_leader',
+            boothId,
+          })
+        }
+        if (schoolVotes.length > 0) {
+          await votesAPI.castBulk({ votes: schoolVotes, studentId: student._id, boothId })
+        }
       }
 
       if (socketRef.current) {

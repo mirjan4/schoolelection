@@ -53,4 +53,12 @@ voteSchema.index(
   }
 );
 
+// Fast performance indexes
+voteSchema.index({ studentId: 1 });
+voteSchema.index({ candidateId: 1 });
+voteSchema.index({ positionId: 1 });
+voteSchema.index({ boothId: 1 });
+voteSchema.index({ studentId: 1, candidateId: 1 });
+voteSchema.index({ studentId: 1, positionId: 1 });
+
 module.exports = mongoose.model('Vote', voteSchema);
