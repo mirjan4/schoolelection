@@ -91,6 +91,38 @@ export default function CandidatesPage() {
     return acc;
   }, {})
 
+  // Sort candidates within position groups (by displayOrder ASC, then name ASC)
+  const sortCandidatesInGroup = (list) => {
+    return [...list].sort((a, b) => {
+      const orderA = a.displayOrder !== undefined && a.displayOrder !== null ? a.displayOrder : 0
+      const orderB = b.displayOrder !== undefined && b.displayOrder !== null ? b.displayOrder : 0
+      if (orderA !== orderB) return orderA - orderB
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+    })
+  }
+
+  // Construct position-grouped data for Candidate Print Report (in Position displayOrder ASC)
+  const groupedCandidateReportData = isCollege
+    ? positions
+        .map((pos) => {
+          const rawList = groupedCollegeCandidates[pos._id]?.list || []
+          return {
+            groupTitle: pos.name,
+            items: sortCandidatesInGroup(rawList),
+          }
+        })
+        .filter((g) => g.items.length > 0)
+    : [
+        {
+          groupTitle: 'SCHOOL LEADER',
+          items: sortCandidatesInGroup(schoolLeaders),
+        },
+        {
+          groupTitle: 'CLASS LEADER',
+          items: sortCandidatesInGroup(classLeaders),
+        },
+      ].filter((g) => g.items.length > 0)
+
   const openCreate = () => {
     setForm({
       ...emptyForm,
@@ -321,15 +353,6 @@ export default function CandidatesPage() {
                   ),
               },
               {
-                header: 'Contesting Position',
-                cell: (c) =>
-                  isCollege
-                    ? c.positionId?.name || 'Position'
-                    : c.electionType === 'class_leader'
-                    ? `Class Leader`
-                    : 'School Leader',
-              },
-              {
                 header: 'Dept / Class',
                 cell: (c) =>
                   isCollege
@@ -341,6 +364,7 @@ export default function CandidatesPage() {
               { header: 'Vote Count', dataKey: 'voteCount' },
             ]}
             data={candidates}
+            groupedData={groupedCandidateReportData}
             fileName="Candidates_Roster_Report.pdf"
           />
           <button onClick={openCreate} className="btn-primary flex items-center gap-2 flex-shrink-0">

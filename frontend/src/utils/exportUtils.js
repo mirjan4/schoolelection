@@ -12,6 +12,8 @@ export const exportToPDF = async ({
   printedBy = 'VoteFlow System',
   columns = [],
   data = [],
+  groupedData = null,
+  summaryData = null,
   fileName = 'Election_Report.pdf',
   orientation = 'auto',
 }) => {
@@ -71,7 +73,6 @@ export const exportToPDF = async ({
 
   // ── METADATA BOX ─────────────────────────────────────
   if (boothDetails) {
-    // Clean Minimal 2-Column Booth Info Box (11px / ~8.5pt)
     const metaHeight = 14
     doc.setFillColor(248, 250, 252)
     doc.setDrawColor(203, 213, 225)
@@ -107,68 +108,203 @@ export const exportToPDF = async ({
     doc.setFontSize(8.5)
     doc.setFont('helvetica', 'bold')
     doc.setTextColor(71, 85, 105)
-    doc.text(subtitle, centerX, startYPosition + 2, { align: 'center' })
-    startYPosition += 7
+    doc.text(String(subtitle), centerX, startYPosition + 2, { align: 'center' })
+    startYPosition += 8
   } else {
     doc.setDrawColor(15, 23, 42)
     doc.setLineWidth(0.5)
     doc.line(14, startYPosition, pageWidth - 14, startYPosition)
-    startYPosition += 4
+    startYPosition += 5
   }
 
-  // ── TABLE GENERATION ────────────────────────────────
+  const didDrawPage = (dataArg) => {
+    const pageCount = doc.internal.getNumberOfPages()
+    doc.setFontSize(8)
+    doc.setTextColor(71, 85, 105)
+    doc.setFont('helvetica', 'normal')
+    doc.setDrawColor(203, 213, 225)
+    doc.setLineWidth(0.3)
+    doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12)
+
+    doc.text(`Printed on: ${formattedFooterDate}`, 14, pageHeight - 7)
+    doc.text(`Page ${dataArg.pageNumber} of ${pageCount}`, pageWidth - 14, pageHeight - 7, {
+      align: 'right',
+    })
+  }
+
   const tableHeaders = columns.map((col) => (typeof col === 'string' ? col : col.header))
-  const tableRows = data.map((row, rowIndex) => {
-    if (Array.isArray(row)) return row
-    return columns.map((col) => {
-      const key = typeof col === 'string' ? col : col.dataKey
-      if (typeof col.cell === 'function') {
-        return col.cell(row, rowIndex)
+
+  const getCellString = (col, row, rowIndex) => {
+    const key = typeof col === 'string' ? col : col.dataKey
+    if (typeof col.cell === 'function') {
+      const res = col.cell(row, rowIndex)
+      if (typeof res === 'string' || typeof res === 'number') return String(res)
+      if (col.header && String(col.header).toLowerCase().includes('symbol')) {
+        const icon = row.symbolIcon || ''
+        const symName = row.symbol || ''
+        return `${icon} ${symName}`.trim() || 'N/A'
       }
       return row[key] !== undefined && row[key] !== null ? String(row[key]) : ''
+    }
+    return row[key] !== undefined && row[key] !== null ? String(row[key]) : ''
+  }
+
+  if (summaryData && summaryData.length > 0) {
+    if (startYPosition + 30 > pageHeight) {
+      doc.addPage()
+      startYPosition = 20
+    }
+
+    doc.setFillColor(15, 23, 42)
+    doc.roundedRect(14, startYPosition, pageWidth - 28, 7, 1, 1, 'F')
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.setTextColor(255, 255, 255)
+    doc.text('TOP WINNERS SUMMARY', 18, startYPosition + 4.8)
+
+    startYPosition += 9
+
+    const summaryRows = summaryData.map((item, i) => {
+      const winnerName = item.winner ? item.winner.name : 'N/A'
+      const symbolStr = item.winner ? (item.winner.symbolName ? `${item.winner.symbol || ''} ${item.winner.symbolName}`.trim() : (item.winner.symbol || 'N/A')) : 'N/A'
+      const deptStr = item.winner ? item.winner.dept : 'N/A'
+      const votesStr = item.winner ? String(item.winner.voteCount) : '0'
+      const runnerUpStr = item.runnerUp ? `${item.runnerUp.name} (${item.runnerUp.voteCount} votes)` : 'N/A'
+
+      return [
+        `#${i + 1}`,
+        item.positionName,
+        winnerName,
+        symbolStr,
+        deptStr,
+        votesStr,
+        runnerUpStr,
+      ]
     })
-  })
 
-  autoTable(doc, {
-    head: [tableHeaders],
-    body: tableRows,
-    startY: startYPosition,
-    theme: 'grid',
-    headStyles: {
-      fillColor: [15, 23, 42],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 8.5, // ~11px
-      halign: 'left',
-      cellPadding: 3.5,
-    },
-    bodyStyles: {
-      fontSize: 7.5, // ~10px
-      textColor: [30, 41, 59],
-      cellPadding: 3,
-      overflow: 'linebreak',
-    },
-    alternateRowStyles: {
-      fillColor: [248, 250, 252],
-    },
-    gridLineColor: [203, 213, 225],
-    gridLineWidth: 0.3,
-    margin: { top: 30, bottom: 18, left: 14, right: 14 },
-    didDrawPage: (dataArg) => {
-      const pageCount = doc.internal.getNumberOfPages()
-      doc.setFontSize(8)
-      doc.setTextColor(71, 85, 105)
-      doc.setFont('helvetica', 'normal')
-      doc.setDrawColor(203, 213, 225)
-      doc.setLineWidth(0.3)
-      doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12)
+    autoTable(doc, {
+      head: [['#', 'Position Name', 'Winner', 'Symbol', 'Dept / Class', 'Total Votes', 'Runner-up']],
+      body: summaryRows,
+      startY: startYPosition,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [30, 41, 59],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8,
+        halign: 'left',
+        cellPadding: 3,
+      },
+      bodyStyles: {
+        fontSize: 7.5,
+        textColor: [30, 41, 59],
+        cellPadding: 2.5,
+        overflow: 'linebreak',
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252],
+      },
+      gridLineColor: [203, 213, 225],
+      gridLineWidth: 0.3,
+      margin: { top: 30, bottom: 18, left: 14, right: 14 },
+      didDrawPage,
+    })
 
-      doc.text(`Printed on: ${formattedFooterDate}`, 14, pageHeight - 7)
-      doc.text(`Page ${dataArg.pageNumber} of ${pageCount}`, pageWidth - 14, pageHeight - 7, {
-        align: 'right',
+    doc.addPage()
+    startYPosition = 20
+  }
+
+  if (groupedData && groupedData.length > 0) {
+    // ── GROUPED TABLE GENERATION ─────────────────────────────────────
+    groupedData.forEach((group) => {
+      // Check space before drawing group title box
+      if (startYPosition + 25 > pageHeight) {
+        doc.addPage()
+        startYPosition = 20
+      }
+
+      // Group Heading Banner (Dark Navy background)
+      doc.setFillColor(15, 23, 42)
+      doc.roundedRect(14, startYPosition, pageWidth - 28, 7, 1, 1, 'F')
+
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.setTextColor(255, 255, 255)
+      doc.text(`POSITION: ${String(group.groupTitle || '').toUpperCase()}`, 18, startYPosition + 4.8)
+
+      startYPosition += 9
+
+      const tableRows = (group.items || []).map((row, rowIndex) => {
+        return [(rowIndex + 1), ...columns.map((col) => getCellString(col, row, rowIndex))]
       })
-    },
-  })
+
+      autoTable(doc, {
+        head: [['#', ...tableHeaders]],
+        body: tableRows,
+        startY: startYPosition,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [30, 41, 59],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 8.5,
+          halign: 'left',
+          cellPadding: 3.5,
+        },
+        bodyStyles: {
+          fontSize: 7.5,
+          textColor: [30, 41, 59],
+          cellPadding: 3,
+          overflow: 'linebreak',
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252],
+        },
+        gridLineColor: [203, 213, 225],
+        gridLineWidth: 0.3,
+        margin: { top: 30, bottom: 18, left: 14, right: 14 },
+        didDrawPage,
+      })
+
+      startYPosition = doc.lastAutoTable.finalY + 8
+    })
+  } else {
+    // ── SINGLE FLAT TABLE GENERATION ──────────────────────────────────
+    const tableRows = data.map((row, rowIndex) => {
+      if (Array.isArray(row)) return row
+      return columns.map((col) => getCellString(col, row, rowIndex))
+    })
+
+    autoTable(doc, {
+      head: [['#', ...tableHeaders]],
+      body: tableRows.map((r, i) => [(i + 1), ...r]),
+      startY: startYPosition,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [15, 23, 42],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8.5,
+        halign: 'left',
+        cellPadding: 3.5,
+      },
+      bodyStyles: {
+        fontSize: 7.5,
+        textColor: [30, 41, 59],
+        cellPadding: 3,
+        overflow: 'linebreak',
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252],
+      },
+      gridLineColor: [203, 213, 225],
+      gridLineWidth: 0.3,
+      margin: { top: 30, bottom: 18, left: 14, right: 14 },
+      didDrawPage,
+    })
+  }
 
   doc.save(fileName)
 }
+

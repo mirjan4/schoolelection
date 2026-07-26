@@ -28,6 +28,14 @@ const electionSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  enableSuccessSound: {
+    type: Boolean,
+    default: true,
+  },
+  soundVolume: {
+    type: Number,
+    default: 80,
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

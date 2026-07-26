@@ -1,39 +1,14 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Users, Vote, TrendingUp, School, Activity, Clock, Zap, AlertTriangle } from 'lucide-react'
+import { Zap } from 'lucide-react'
 import { electionAPI, resultsAPI } from '../../services/api'
 import { useSocket } from '../../context/SocketContext'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend
 } from 'recharts'
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4']
 
-const StatCard = ({ icon: Icon, label, value, sub, color = 'blue', delay = 0 }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay, duration: 0.5 }}
-    className="stat-card group hover:border-white/20 transition-all duration-300"
-  >
-    <div className="flex items-start justify-between">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center 
-        ${color === 'blue' ? 'bg-primary-500/20 text-primary-400' :
-          color === 'purple' ? 'bg-accent-500/20 text-accent-400' :
-          color === 'green' ? 'bg-emerald-500/20 text-emerald-400' :
-          'bg-gold-500/20 text-gold-400'}`}>
-        <Icon size={22} />
-      </div>
-      <span className="text-white/20 text-xs font-mono">LIVE</span>
-    </div>
-    <div>
-      <p className="text-3xl font-bold text-white">{value ?? '—'}</p>
-      <p className="text-white/50 text-sm font-medium">{label}</p>
-      {sub && <p className="text-white/30 text-xs mt-0.5">{sub}</p>}
-    </div>
-  </motion.div>
-)
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
@@ -96,7 +71,6 @@ export default function SuperAdminDashboard() {
     name: b.booth.name,
     Students: b.totalStudents,
     Voted: b.totalVoted,
-    Turnout: b.turnout,
   })) || []
 
   const classPieData = results?.classTurnout?.map(c => ({
@@ -126,42 +100,90 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatCard icon={Users} label="Total Students" value={stats?.totalStudents} color="blue" delay={0.1} />
-        <StatCard icon={Vote} label="Total Votes Cast" value={stats?.totalVotes} color="purple" delay={0.15} />
-        <StatCard icon={TrendingUp} label="Voter Turnout" value={stats ? `${stats.turnout}%` : '—'} sub={`${stats?.totalVoted} voted`} color="green" delay={0.2} />
-        <StatCard 
-          icon={AlertTriangle} 
-          label="Capacity Alerts" 
-          value={stats?.boothStats?.filter(b => b.status === 'overloaded').length || 0} 
-          sub="Overloaded booths"
-          color={stats?.boothStats?.some(b => b.status === 'overloaded') ? 'red' : 'gold'} 
-          delay={0.25} 
-        />
-      </div>
+      {/* ── Election Monitoring Stat Cards ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Booth-wise chart */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-card p-6">
-          <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <Activity size={16} className="text-primary-400" /> Booth-Wise Turnout
-          </h2>
-          {boothChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={boothChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="name" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} />
-                <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="Students" fill="#1d4ed8" radius={[4,4,0,0]} />
-                <Bar dataKey="Voted" fill="#3b82f6" radius={[4,4,0,0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : <p className="text-white/30 text-sm text-center py-12">No booth data yet</p>}
+        {/* Total Students */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="glass-card p-5 group hover:border-white/20 transition-all"
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="w-11 h-11 rounded-xl bg-blue-500/15 flex items-center justify-center">
+              <span className="text-xl">👥</span>
+            </div>
+            <span className="text-[10px] text-white/20 font-mono uppercase tracking-wider">LIVE</span>
+          </div>
+          <p className="text-3xl font-bold text-white mb-1">{stats?.totalStudents ?? '—'}</p>
+          <p className="text-white/60 text-sm font-semibold">Total Students</p>
+          <p className="text-white/30 text-xs mt-0.5">Registered voters</p>
         </motion.div>
 
+        {/* Students Voted */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="glass-card p-5 group hover:border-white/20 transition-all"
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="w-11 h-11 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+              <span className="text-xl">✅</span>
+            </div>
+            <span className="text-[10px] text-emerald-400/60 font-mono uppercase tracking-wider">
+              {election?.status === 'active' ? 'LIVE' : '—'}
+            </span>
+          </div>
+          <p className="text-3xl font-bold text-emerald-400 mb-1">{stats?.totalVoted ?? '—'}</p>
+          <p className="text-white/60 text-sm font-semibold">Students Voted</p>
+          <p className="text-white/30 text-xs mt-0.5">Votes cast so far</p>
+        </motion.div>
+
+        {/* Voter Turnout */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          className="glass-card p-5 group hover:border-white/20 transition-all"
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="w-11 h-11 rounded-xl bg-violet-500/15 flex items-center justify-center">
+              <span className="text-xl">📊</span>
+            </div>
+            <span className="text-[10px] text-white/20 font-mono uppercase tracking-wider">LIVE</span>
+          </div>
+          <p className="text-3xl font-bold text-violet-400 mb-1">
+            {stats ? `${stats.turnout}%` : '—'}
+          </p>
+          <p className="text-white/60 text-sm font-semibold">Voter Turnout</p>
+          {/* Mini progress bar */}
+          <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-violet-500 to-primary-500 rounded-full transition-all duration-700"
+              style={{ width: `${stats?.turnout || 0}%` }}
+            />
+          </div>
+        </motion.div>
+
+        {/* Remaining Voters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+          className="glass-card p-5 group hover:border-white/20 transition-all"
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center">
+              <span className="text-xl">⏳</span>
+            </div>
+            <span className="text-[10px] text-white/20 font-mono uppercase tracking-wider">LIVE</span>
+          </div>
+          <p className="text-3xl font-bold text-amber-400 mb-1">
+            {stats ? (stats.totalStudents - stats.totalVoted) : '—'}
+          </p>
+          <p className="text-white/60 text-sm font-semibold">Remaining Voters</p>
+          <p className="text-white/30 text-xs mt-0.5">Yet to cast vote</p>
+        </motion.div>
+
+      </div>
+
+
+      {/* Winners Summary — full width */}
+      <div className="grid grid-cols-1 gap-6">
         {/* Winners Summary Card */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="glass-card p-6 overflow-hidden relative">
           <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary-500/10 rounded-full blur-2xl" />

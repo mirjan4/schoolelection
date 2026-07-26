@@ -231,4 +231,28 @@ router.get('/stats', protect, async (req, res) => {
   }
 });
 
+// @PUT /api/election/settings
+router.put('/settings', protect, superAdmin, async (req, res) => {
+  try {
+    const { enableSuccessSound, soundVolume } = req.body;
+    let election = await Election.findOne().sort({ createdAt: -1 });
+
+    if (!election) {
+      election = await Election.create({
+        enableSuccessSound: enableSuccessSound !== undefined ? enableSuccessSound : true,
+        soundVolume: soundVolume !== undefined ? soundVolume : 80,
+      });
+    } else {
+      if (enableSuccessSound !== undefined) election.enableSuccessSound = enableSuccessSound;
+      if (soundVolume !== undefined) election.soundVolume = soundVolume;
+      await election.save();
+    }
+
+    req.io.emit('election_settings_updated', { election });
+    res.json({ success: true, data: election });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 module.exports = router;

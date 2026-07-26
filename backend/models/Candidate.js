@@ -63,6 +63,10 @@ const candidateSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  displayOrder: {
+    type: Number,
+    default: 0,
+  },
   voteCount: {
     type: Number,
     default: 0,

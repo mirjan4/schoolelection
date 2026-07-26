@@ -46,6 +46,80 @@ export default function VotingDevice() {
 
   const isCollege = election?.type === 'college'
 
+  // Audio Preloading & Duplicate Prevention
+  const audioRef = useRef(null)
+  const hasPlayedSoundRef = useRef(false)
+
+  useEffect(() => {
+    const audio = new Audio('/sounds/vote-success.mp3')
+    audio.preload = 'auto'
+    audioRef.current = audio
+  }, [])
+
+  // Synthesized Web Audio API Fallback: Authentic Indian EVM "Peeeeep" Beep Tone (1050 Hz, 0.9s duration)
+  const playSynthesizedChime = useCallback((volume = 0.8) => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext
+      if (!AudioCtx) return
+      const ctx = new AudioCtx()
+      
+      const now = ctx.currentTime
+      const duration = 0.9 // 0.8 - 1.0 second EVM beep
+      const osc1 = ctx.createOscillator()
+      const osc2 = ctx.createOscillator()
+      const gain = ctx.createGain()
+
+      // 1050 Hz fundamental + 2100 Hz 2nd harmonic for authentic EVM piezo tone
+      osc1.type = 'sine'
+      osc2.type = 'sine'
+      osc1.frequency.setValueAtTime(1050, now)
+      osc2.frequency.setValueAtTime(2100, now)
+
+      // Envelope: Fast 5ms attack, steady sustain, clean 40ms decay at end
+      gain.gain.setValueAtTime(0.001, now)
+      gain.gain.linearRampToValueAtTime(volume * 0.5, now + 0.005)
+      gain.gain.setValueAtTime(volume * 0.5, now + duration - 0.04)
+      gain.gain.linearRampToValueAtTime(0.0001, now + duration)
+
+      osc1.connect(gain)
+      osc2.connect(gain)
+      gain.connect(ctx.destination)
+
+      osc1.start(now)
+      osc2.start(now)
+      osc1.stop(now + duration)
+      osc2.stop(now + duration)
+    } catch (e) {
+      console.warn('Audio synthesis fallback error:', e)
+    }
+  }, [])
+
+  // Success sound playback handler (respects admin settings & prevents duplicates)
+  const playSuccessSound = useCallback(() => {
+    if (election?.enableSuccessSound === false) return
+    if (hasPlayedSoundRef.current) return
+
+    hasPlayedSoundRef.current = true
+    const targetVol = (election?.soundVolume !== undefined ? election.soundVolume : 80) / 100
+
+    if (audioRef.current) {
+      try {
+        audioRef.current.currentTime = 0
+        audioRef.current.volume = Math.max(0, Math.min(1, targetVol))
+        const playPromise = audioRef.current.play()
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            playSynthesizedChime(targetVol)
+          })
+        }
+      } catch (err) {
+        playSynthesizedChime(targetVol)
+      }
+    } else {
+      playSynthesizedChime(targetVol)
+    }
+  }, [election, playSynthesizedChime])
+
   // Load booth info
   useEffect(() => {
     const saved = localStorage.getItem('device_booth')
@@ -99,6 +173,7 @@ export default function VotingDevice() {
 
     s.on('session_state', ({ session }) => {
       if (session?.status === 'voting' && session?.currentStudent) {
+        hasPlayedSoundRef.current = false
         setStudent(session.currentStudent)
         setSelections(isCollege ? {} : { class_leader: null, school_leader: null })
         setCurrentPositionIndex(0)
@@ -107,6 +182,7 @@ export default function VotingDevice() {
     })
 
     s.on('voting_started', ({ student: s }) => {
+      hasPlayedSoundRef.current = false
       setStudent(s)
       setSelections(isCollege ? {} : { class_leader: null, school_leader: null })
       setCurrentPositionIndex(0)
@@ -115,6 +191,7 @@ export default function VotingDevice() {
     })
 
     s.on('session_reset', () => {
+      hasPlayedSoundRef.current = false
       setPhase(PHASES.idle)
       setStudent(null)
       setSelections(isCollege ? {} : { class_leader: null, school_leader: null })
@@ -123,6 +200,10 @@ export default function VotingDevice() {
 
     s.on('voting_completed', () => {
       triggerThankYou()
+    })
+
+    s.on('election_settings_updated', ({ election: updatedElection }) => {
+      setElection(updatedElection)
     })
 
     socketRef.current = s
@@ -135,13 +216,18 @@ export default function VotingDevice() {
 
   const triggerThankYou = useCallback(() => {
     setPhase(PHASES.thankyou)
+    
+    // Play success confirmation audio chime
+    playSuccessSound()
+
     confetti({
       particleCount: 150,
       spread: 80,
       origin: { y: 0.6 },
       colors: ['#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b'],
     })
-    let c = 5
+
+    let c = 3 // 2-3 seconds thank you countdown
     setCountdown(c)
     const interval = setInterval(() => {
       c--
@@ -152,13 +238,14 @@ export default function VotingDevice() {
         setStudent(null)
         setSelections(isCollege ? {} : { class_leader: null, school_leader: null })
         setCurrentPositionIndex(0)
+        hasPlayedSoundRef.current = false
         const boothId = JSON.parse(localStorage.getItem('device_booth') || '{}')._id
         if (socketRef.current && boothId) {
           socketRef.current.emit('reset_session', { boothId })
         }
       }
     }, 1000)
-  }, [isCollege])
+  }, [isCollege, playSuccessSound])
 
   // Select Candidate for School Mode
   const selectCandidateSchool = (type, candidateId) => {

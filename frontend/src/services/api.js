@@ -72,6 +72,7 @@ export const studentsAPI = {
   bulkCreate: (students) => api.post('/students/bulk', { students }),
   transferStudents: (data) => api.post('/students/bulk-transfer', data),
   bulkDelete: (ids) => api.delete('/students', { data: { ids } }),
+  bulkAssignBooth: (data) => api.put('/students/bulk-assign-booth', data),
 }
 
 // ─── CANDIDATES ─────────────────────────────────────
@@ -98,6 +99,7 @@ export const electionAPI = {
   resetSession: () => api.post('/election/session/reset'),
   getSession: (boothId) => api.get(`/election/session/${boothId}`),
   getStats: () => api.get('/election/stats'),
+  updateSettings: (data) => api.put('/election/settings', data),
 }
 
 // ─── RESULTS ────────────────────────────────────────

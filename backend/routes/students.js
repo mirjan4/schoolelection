@@ -6,7 +6,7 @@ const { protect, superAdmin } = require('../middleware/auth');
 // @GET /api/students
 router.get('/', protect, async (req, res) => {
   try {
-    const { search, boothId, class: cls, section, hasVoted } = req.query;
+    const { search, boothId, class: cls, section, hasVoted, sortBy, sortOrder } = req.query;
     let query = {};
 
     // Booth admin can only see their booth's students
@@ -38,7 +38,34 @@ router.get('/', protect, async (req, res) => {
       ];
     }
 
-    const students = await Student.find(query).populate('boothId', 'name code').sort({ name: 1 });
+    // Determine sorting parameters
+    const direction = sortOrder === 'desc' ? -1 : 1;
+    let sortOptions = { admissionNo: 1 };
+
+    const votedField = isCollege ? 'hasVotedCollege' : 'hasVotedClassLeader';
+
+    if (sortBy === 'admissionNo') {
+      sortOptions = { admissionNo: direction };
+    } else if (sortBy === 'name') {
+      sortOptions = { name: direction };
+    } else if (sortBy === 'class') {
+      sortOptions = { class: direction, section: 1, name: 1 };
+    } else if (sortBy === 'section') {
+      sortOptions = { section: direction, class: 1, name: 1 };
+    } else if (sortBy === 'voted') {
+      sortOptions = { [votedField]: direction, name: 1 };
+    }
+
+    let students = await Student.find(query).populate('boothId', 'name code').sort(sortOptions);
+
+    if (sortBy === 'booth') {
+      students.sort((a, b) => {
+        const nameA = a.boothId?.name || '';
+        const nameB = b.boothId?.name || '';
+        return direction * nameA.localeCompare(nameB, undefined, { sensitivity: 'base' });
+      });
+    }
+
     res.json({ success: true, data: students, count: students.length });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -103,6 +130,44 @@ router.delete('/', protect, superAdmin, async (req, res) => {
     if (!Array.isArray(ids)) return res.status(400).json({ success: false, message: 'Invalid IDs list' });
     await Student.deleteMany({ _id: { $in: ids } });
     res.json({ success: true, message: 'Students deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// @PUT /api/students/bulk-assign-booth
+router.put('/bulk-assign-booth', protect, superAdmin, async (req, res) => {
+  try {
+    const { studentIds, boothId } = req.body;
+    if (!Array.isArray(studentIds) || studentIds.length === 0 || !boothId) {
+      return res.status(400).json({ success: false, message: 'Invalid studentIds or boothId' });
+    }
+
+    const Booth = require('../models/Booth');
+    const booth = await Booth.findById(boothId);
+    if (!booth) {
+      return res.status(404).json({ success: false, message: 'Booth not found' });
+    }
+
+    const result = await Student.updateMany(
+      { _id: { $in: studentIds } },
+      { $set: { boothId } }
+    );
+
+    // Emit Socket.IO events for real-time sync across booth screens and dashboards
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('students:boothUpdated', { studentIds, boothId, boothName: booth.name });
+      io.emit('booth_assignment_changed', { studentIds, targetBoothId: boothId });
+      io.emit('stats_update');
+    }
+
+    res.json({
+      success: true,
+      message: `${result.modifiedCount || studentIds.length} students assigned to ${booth.name} successfully`,
+      updatedCount: result.modifiedCount || studentIds.length,
+      booth: { _id: booth._id, name: booth.name, code: booth.code }
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

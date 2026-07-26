@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Zap, Play, Square, Clock, AlertTriangle, CheckCircle, Activity } from 'lucide-react'
+import { Zap, Play, Square, Clock, AlertTriangle, CheckCircle, Activity, Volume2, Settings, Save } from 'lucide-react'
 import { electionAPI } from '../../services/api'
 import { useSocket } from '../../context/SocketContext'
 import toast from 'react-hot-toast'
@@ -14,10 +14,20 @@ export default function ElectionControlPage() {
   const [title, setTitle] = useState('College Union Election 2024')
   const [electionType, setElectionType] = useState('college')
 
+  // Audio Settings State
+  const [enableSuccessSound, setEnableSuccessSound] = useState(true)
+  const [soundVolume, setSoundVolume] = useState(80)
+  const [savingSettings, setSavingSettings] = useState(false)
+
   const fetchElection = async () => {
     try {
       const res = await electionAPI.status()
-      setElection(res.data.data)
+      const data = res.data.data
+      setElection(data)
+      if (data) {
+        if (data.enableSuccessSound !== undefined) setEnableSuccessSound(data.enableSuccessSound)
+        if (data.soundVolume !== undefined) setSoundVolume(data.soundVolume)
+      }
     } catch (err) {
       console.error(err)
     } finally {
@@ -31,11 +41,31 @@ export default function ElectionControlPage() {
     if (!socket) return
     socket.on('election_started', ({ election }) => setElection(election))
     socket.on('election_ended', ({ election }) => setElection(election))
+    socket.on('election_settings_updated', ({ election }) => {
+      setElection(election)
+      if (election) {
+        if (election.enableSuccessSound !== undefined) setEnableSuccessSound(election.enableSuccessSound)
+        if (election.soundVolume !== undefined) setSoundVolume(election.soundVolume)
+      }
+    })
     return () => {
       socket.off('election_started')
       socket.off('election_ended')
+      socket.off('election_settings_updated')
     }
   }, [socket])
+
+  const handleSaveSettings = async () => {
+    setSavingSettings(true)
+    try {
+      await electionAPI.updateSettings({ enableSuccessSound, soundVolume })
+      toast.success('System settings saved successfully!')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save settings')
+    } finally {
+      setSavingSettings(false)
+    }
+  }
 
   const handleStart = async () => {
     if (!confirm('Start the election? All booth devices will be activated.')) return
@@ -192,6 +222,77 @@ export default function ElectionControlPage() {
             Stop Election
           </motion.button>
         )}
+      </motion.div>
+
+      {/* System & Accessibility Settings */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+        className="glass-card p-6 space-y-5">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center text-primary-400">
+              <Volume2 size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">System & Accessibility Settings</h2>
+              <p className="text-white/40 text-xs mt-0.5">Configure voting device audio feedback and volume</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Toggle Success Sound */}
+          <div className="flex items-center justify-between p-3.5 bg-white/5 rounded-xl border border-white/10">
+            <div>
+              <p className="text-white font-bold text-sm">Enable Success Sound</p>
+              <p className="text-white/40 text-xs mt-0.5">Play a soft confirmation chime on the voting device after a vote is recorded</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={enableSuccessSound}
+                onChange={(e) => setEnableSuccessSound(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500"></div>
+            </label>
+          </div>
+
+          {/* Sound Volume Slider */}
+          <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-white font-bold text-sm">Sound Volume ({soundVolume}%)</label>
+              <span className="text-xs font-mono font-bold text-primary-400 bg-primary-500/10 px-2 py-0.5 rounded border border-primary-500/20">
+                {soundVolume}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value={soundVolume}
+              disabled={!enableSuccessSound}
+              onChange={(e) => setSoundVolume(Number(e.target.value))}
+              className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary-500 disabled:opacity-40"
+            />
+            <p className="text-white/30 text-[11px]">Adjust playback loudness for the voting device confirmation audio.</p>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={handleSaveSettings}
+              disabled={savingSettings}
+              className="btn-primary flex items-center gap-2 text-xs px-5 py-2.5"
+            >
+              {savingSettings ? (
+                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Save size={15} />
+              )}
+              Save Settings
+            </button>
+          </div>
+        </div>
       </motion.div>
 
       {/* Info box */}

@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
     if (electionType) query.electionType = electionType;
     if (positionId) query.positionId = positionId;
     if (active !== undefined) query.active = active === 'true';
-    const candidates = await Candidate.find(query).populate('positionId').sort({ name: 1 });
+    const candidates = await Candidate.find(query).populate('positionId').sort({ displayOrder: 1, name: 1 });
     // Prevent browser from caching this response so deleted candidates never appear stale
     res.set('Cache-Control', 'no-store');
     res.json({ success: true, data: candidates });

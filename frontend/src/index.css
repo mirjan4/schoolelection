@@ -196,20 +196,13 @@
     box-sizing: border-box !important;
   }
 
-  /* 1. Hide the entire Web Application UI */
-  body, html {
-    background: #ffffff !important;
-    color: #0f172a !important;
-    font-family: 'Segoe UI', Arial, Helvetica, sans-serif !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-  }
-
+  /* 1. Hide the entire Web Application UI inside #root */
+  #root,
   header,
   aside,
   nav,
+  main,
+  footer,
   button,
   input,
   select,
@@ -225,28 +218,25 @@
     display: none !important;
   }
 
-  /* 2. Reset all main layout containers */
-  main, div, section, article, .flex-1 {
+  /* 2. Setup document body for print */
+  body, html {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
     width: 100% !important;
-    max-width: 100% !important;
-    float: none !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 
-  /* 3. Dedicated Printable Report Container (Fills 100% A4 width) */
-  body:not([data-print-active-id]) .print-only {
-    display: block !important;
-  }
-
-  body[data-print-active-id] .print-only {
+  /* 3. Dedicated Printable Report Container (Portaled to body outside #root) */
+  .print-only {
     display: none !important;
   }
 
-  body[data-print-active-id] .print-only.active-print-target {
+  body[data-print-active-id] .print-only.active-print-target,
+  .print-only.active-print-target {
     display: block !important;
     position: absolute !important;
     top: 0 !important;
@@ -259,7 +249,32 @@
     visibility: visible !important;
   }
 
-  .print-only * {
+  .print-only.active-print-target * {
+    visibility: visible !important;
+  }
+
+  /* Dedicated Position Banner Header for Print Preview */
+  .print-position-banner {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    padding: 8px 12px !important;
+    margin-top: 14px !important;
+    margin-bottom: 8px !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.8px !important;
+    border-radius: 4px !important;
+    text-transform: uppercase !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    visibility: visible !important;
+  }
+
+  .print-position-banner * {
+    color: #ffffff !important;
     visibility: visible !important;
   }
 

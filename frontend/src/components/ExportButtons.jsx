@@ -12,6 +12,8 @@ export default function ExportButtons({
   printedBy = 'VoteFlow System',
   columns = [],
   data = [],
+  groupedData = null,
+  summaryData = null,
   fileName = 'Election_Report.pdf',
   orientation = 'auto',
   hidePDF = false,
@@ -48,6 +50,8 @@ export default function ExportButtons({
         printedBy,
         columns,
         data,
+        groupedData,
+        summaryData,
         fileName,
         orientation,
       })
@@ -191,49 +195,255 @@ export default function ExportButtons({
         )}
       </div>
 
-      {/* Dedicated Printable Table (Full 100% Width) */}
-      <table className="print-table" style={{ marginTop: '16px' }}>
-        <thead>
-          <tr>
-            <th style={{ width: '38px', textAlign: 'center', fontSize: '11px', fontWeight: '800' }}>#</th>
-            {columns.map((col, idx) => (
-              <th key={idx} style={{ fontSize: '11px', fontWeight: '800' }}>
-                {typeof col === 'string' ? col : col.header}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data && data.length > 0 ? (
-            data.map((row, rowIdx) => (
-              <tr key={row._id || rowIdx}>
-                <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#334155', fontSize: '10px' }}>
-                  {rowIdx + 1}
-                </td>
-                {columns.map((col, colIdx) => {
-                  const key = typeof col === 'string' ? col : col.dataKey
-                  let val = ''
-                  if (typeof col.cell === 'function') {
-                    val = col.cell(row, rowIdx)
-                  } else {
-                    val = row[key] !== undefined && row[key] !== null ? String(row[key]) : ''
-                  }
-                  return <td key={colIdx} style={{ fontSize: '10px' }}>{val}</td>
-                })}
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td
-                colSpan={columns.length + 1}
-                style={{ textAlign: 'center', padding: '20px', color: '#64748b', fontWeight: 'bold', fontSize: '10px' }}
+      {/* Top Winners Summary Section (Page 1 Executive Summary) */}
+      {summaryData && summaryData.length > 0 && (
+        <div
+          style={{
+            marginTop: '14px',
+            marginBottom: '20px',
+            pageBreakAfter: 'always',
+            breakAfter: 'page',
+          }}
+        >
+          {/* Section Header */}
+          <div
+            style={{
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
+              padding: '7px 12px',
+              fontSize: '12px',
+              fontWeight: '900',
+              letterSpacing: '1px',
+              borderRadius: '4px',
+              textTransform: 'uppercase',
+              marginBottom: '12px',
+              textAlign: 'center',
+              borderBottom: '2px solid #3b82f6',
+              WebkitPrintColorAdjust: 'exact',
+              printColorAdjust: 'exact',
+              breakAfter: 'avoid',
+              pageBreakAfter: 'avoid',
+            }}
+          >
+            🏆 TOP WINNERS SUMMARY
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+              gap: '10px',
+            }}
+          >
+            {summaryData.map((item, idx) => (
+              <div
+                key={idx}
+                style={{
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '9px 11px',
+                  backgroundColor: '#f8fafc',
+                  pageBreakInside: 'avoid',
+                  breakInside: 'avoid',
+                  WebkitPrintColorAdjust: 'exact',
+                  printColorAdjust: 'exact',
+                }}
               >
-                No records found.
-              </td>
+                {/* Position Name Header */}
+                <div
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    color: '#0f172a',
+                    textTransform: 'uppercase',
+                    borderBottom: '1.5px solid #0f172a',
+                    paddingBottom: '3px',
+                    marginBottom: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  <span>🏆</span>
+                  <span>{item.positionName}</span>
+                </div>
+
+                {/* Winner Info */}
+                {item.winner ? (
+                  <div style={{ fontSize: '10px', lineHeight: '1.5', color: '#0f172a' }}>
+                    <div style={{ fontWeight: '800', color: '#166534', fontSize: '10.5px', marginBottom: '2px' }}>
+                      Winner : <span style={{ color: '#0f172a' }}>{item.winner.name}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span style={{ fontWeight: '700', color: '#475569' }}>Symbol :</span>
+                      {item.winner.symbolType === 'image' && item.winner.symbol ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <img src={item.winner.symbol} alt="" style={{ width: '15px', height: '15px', objectFit: 'contain' }} />
+                          <span>{item.winner.symbolName || ''}</span>
+                        </span>
+                      ) : (
+                        <span>{item.winner.symbol || item.winner.symbolName || 'N/A'}</span>
+                      )}
+                    </div>
+
+                    <div>
+                      <span style={{ fontWeight: '700', color: '#475569' }}>Dept / Class :</span> {item.winner.dept}
+                    </div>
+
+                    <div>
+                      <span style={{ fontWeight: '700', color: '#475569' }}>Total Votes :</span> <strong style={{ color: '#0f172a' }}>{item.winner.voteCount}</strong>
+                    </div>
+
+                    {/* Runner-up (Optional) */}
+                    {item.runnerUp && (
+                      <div
+                        style={{
+                          marginTop: '5px',
+                          paddingTop: '5px',
+                          borderTop: '1px dashed #cbd5e1',
+                          fontSize: '9.5px',
+                          color: '#475569',
+                        }}
+                      >
+                        <span style={{ fontWeight: '700', color: '#854d0e' }}>🥈 Runner-up :</span> {item.runnerUp.name}
+                        <span style={{ marginLeft: '6px', fontWeight: '700', color: '#334155' }}>({item.runnerUp.voteCount} votes)</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '9.5px', color: '#64748b' }}>No winner data</div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ borderBottom: '1.5px solid #0f172a', marginTop: '14px', marginBottom: '8px' }} />
+        </div>
+      )}
+
+      {/* Grouped Tables vs Flat Table */}
+      {groupedData && groupedData.length > 0 ? (
+        <div style={{ marginTop: '14px' }}>
+          {groupedData.map((group, groupIdx) => (
+            <div key={groupIdx} style={{ marginBottom: '20px' }}>
+              {/* Position Header Banner */}
+              <div
+                className="print-position-banner"
+                style={{
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  padding: '8px 12px',
+                  fontSize: '12px',
+                  fontWeight: '800',
+                  letterSpacing: '0.8px',
+                  borderRadius: '4px',
+                  textTransform: 'uppercase',
+                  marginBottom: '8px',
+                  marginTop: groupIdx === 0 ? '0px' : '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  WebkitPrintColorAdjust: 'exact',
+                  printColorAdjust: 'exact',
+                  breakAfter: 'avoid',
+                  pageBreakAfter: 'avoid',
+                }}
+              >
+                <span style={{ opacity: 0.8, fontWeight: '700', fontSize: '11px', color: '#ffffff' }}>POSITION:</span>
+                <span style={{ color: '#ffffff', fontWeight: '800' }}>{group.groupTitle}</span>
+              </div>
+
+              <table className="print-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: '38px', textAlign: 'center', fontSize: '11px', fontWeight: '800' }}>#</th>
+                    {columns.map((col, idx) => (
+                      <th key={idx} style={{ fontSize: '11px', fontWeight: '800' }}>
+                        {typeof col === 'string' ? col : col.header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.items && group.items.length > 0 ? (
+                    group.items.map((row, rowIdx) => (
+                      <tr key={row._id || rowIdx}>
+                        <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#334155', fontSize: '10px' }}>
+                          {rowIdx + 1}
+                        </td>
+                        {columns.map((col, colIdx) => {
+                          const key = typeof col === 'string' ? col : col.dataKey
+                          let val = ''
+                          if (typeof col.cell === 'function') {
+                            val = col.cell(row, rowIdx)
+                          } else {
+                            val = row[key] !== undefined && row[key] !== null ? String(row[key]) : ''
+                          }
+                          return <td key={colIdx} style={{ fontSize: '10px' }}>{val}</td>
+                        })}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={columns.length + 1}
+                        style={{ textAlign: 'center', padding: '12px', color: '#64748b', fontWeight: 'bold', fontSize: '10px' }}
+                      >
+                        No candidates for this position.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Dedicated Printable Flat Table */
+        <table className="print-table" style={{ marginTop: '16px' }}>
+          <thead>
+            <tr>
+              <th style={{ width: '38px', textAlign: 'center', fontSize: '11px', fontWeight: '800' }}>#</th>
+              {columns.map((col, idx) => (
+                <th key={idx} style={{ fontSize: '11px', fontWeight: '800' }}>
+                  {typeof col === 'string' ? col : col.header}
+                </th>
+              ))}
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data && data.length > 0 ? (
+              data.map((row, rowIdx) => (
+                <tr key={row._id || rowIdx}>
+                  <td style={{ textAlign: 'center', fontWeight: 'bold', color: '#334155', fontSize: '10px' }}>
+                    {rowIdx + 1}
+                  </td>
+                  {columns.map((col, colIdx) => {
+                    const key = typeof col === 'string' ? col : col.dataKey
+                    let val = ''
+                    if (typeof col.cell === 'function') {
+                      val = col.cell(row, rowIdx)
+                    } else {
+                      val = row[key] !== undefined && row[key] !== null ? String(row[key]) : ''
+                    }
+                    return <td key={colIdx} style={{ fontSize: '10px' }}>{val}</td>
+                  })}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length + 1}
+                  style={{ textAlign: 'center', padding: '20px', color: '#64748b', fontWeight: 'bold', fontSize: '10px' }}
+                >
+                  No records found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
 
       {/* Footer with Printed Timestamp on Left & Page Info on Right */}
       <div className="print-footer">

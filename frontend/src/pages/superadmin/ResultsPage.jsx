@@ -147,6 +147,46 @@ export default function ResultsPage() {
     ? flattenedCollegeResults
     : [...schoolLeaderExport, ...classLeadersExport]
 
+  // Construct Top Winners Summary Data (ordered by Position Display Order)
+  const summaryData = isCollegeMode
+    ? (results?.positionResults || []).map(({ position, candidates }) => {
+        const sortedCands = [...(candidates || [])].sort((a, b) => (b.voteCount || 0) - (a.voteCount || 0))
+        const winner = sortedCands.length > 0 ? sortedCands[0] : null
+        const runnerUp = sortedCands.length > 1 && sortedCands[1].voteCount > 0 ? sortedCands[1] : null
+        return {
+          positionName: position.name,
+          winner: winner ? {
+            name: winner.name,
+            symbol: winner.symbolImage || winner.symbolIcon || winner.symbol || '⭐',
+            symbolName: winner.symbol || '',
+            symbolType: winner.symbolType || (winner.symbolImage ? 'image' : 'icon'),
+            dept: winner.department ? `${winner.department}${winner.year ? ` (Yr ${winner.year})` : ''}` : (winner.class ? `Class ${winner.class}` : 'N/A'),
+            voteCount: winner.voteCount || 0,
+          } : null,
+          runnerUp: runnerUp ? {
+            name: runnerUp.name,
+            voteCount: runnerUp.voteCount || 0,
+          } : null,
+        }
+      }).filter((s) => s.winner !== null)
+    : [
+        ...(results?.schoolLeaders && results.schoolLeaders.length > 0 ? [{
+          positionName: 'SCHOOL LEADER',
+          winner: {
+            name: results.schoolLeaders[0].name,
+            symbol: results.schoolLeaders[0].symbolIcon || results.schoolLeaders[0].symbol || '⭐',
+            symbolName: results.schoolLeaders[0].symbol || '',
+            symbolType: 'icon',
+            dept: `Class ${results.schoolLeaders[0].class}`,
+            voteCount: results.schoolLeaders[0].voteCount || 0,
+          },
+          runnerUp: results.schoolLeaders[1] ? {
+            name: results.schoolLeaders[1].name,
+            voteCount: results.schoolLeaders[1].voteCount || 0,
+          } : null,
+        }] : []),
+      ]
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -158,6 +198,7 @@ export default function ResultsPage() {
           <ExportButtons
             title="Official Election Final Results Report"
             subtitle={`Election Type: ${isCollegeMode ? 'College Union Election' : 'School Election'}`}
+            summaryData={summaryData}
             columns={[
               { header: 'Position / Category', dataKey: 'category' },
               { header: 'Rank', dataKey: 'rank' },
@@ -202,7 +243,7 @@ export default function ResultsPage() {
                     )}
                   </div>
                   {chartData.some(d => d.Votes > 0) ? (
-                    <div className="glass-card p-5 flex flex-col justify-center">
+                    <div className="glass-card p-5 flex flex-col justify-center no-print">
                       <h4 className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-4">Vote Distribution</h4>
                       <ResponsiveContainer width="100%" height={180}>
                         <BarChart data={chartData}>
@@ -243,7 +284,7 @@ export default function ResultsPage() {
 
           {/* Bar chart */}
           {schoolChartData.length > 0 && (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 no-print">
               <h3 className="text-white/70 font-semibold mb-4 flex items-center gap-2"><BarChart2 size={16} className="text-primary-400" /> Vote Distribution</h3>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={schoolChartData}>
