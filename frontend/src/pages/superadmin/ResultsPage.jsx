@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Trophy, TrendingUp, BarChart2, RefreshCw, Crown } from 'lucide-react'
-import { resultsAPI } from '../../services/api'
+import { resultsAPI, getMediaUrl } from '../../services/api'
 import { useSocket } from '../../context/SocketContext'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import toast from 'react-hot-toast'
@@ -20,7 +20,13 @@ const WinnerCard = ({ candidate, rank, type }) => (
       <div className="relative shrink-0">
         <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl
           ${rank === 0 ? 'bg-gold-500/20' : rank === 1 ? 'bg-white/10' : 'bg-white/5'}`}>
-          {candidate.photo ? <img src={candidate.photo} alt={candidate.name} className="w-full h-full object-cover rounded-2xl" /> : candidate.symbolIcon}
+          {candidate.photo ? (
+            <img src={getMediaUrl(candidate.photo)} alt={candidate.name} className="w-full h-full object-cover rounded-2xl" />
+          ) : candidate.symbolType === 'image' && candidate.symbolImage ? (
+            <img src={getMediaUrl(candidate.symbolImage)} alt={candidate.symbol} className="w-full h-full object-contain p-1" />
+          ) : (
+            candidate.symbolIcon || '⭐'
+          )}
         </div>
         <div className={`absolute -top-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold
           ${rank === 0 ? 'bg-gold-400 text-black' : rank === 1 ? 'bg-gray-400 text-black' : 'bg-amber-700 text-white'}`}>
@@ -157,7 +163,7 @@ export default function ResultsPage() {
           positionName: position.name,
           winner: winner ? {
             name: winner.name,
-            symbol: winner.symbolImage || winner.symbolIcon || winner.symbol || '⭐',
+            symbol: winner.symbolImage ? getMediaUrl(winner.symbolImage) : (winner.symbolIcon || winner.symbol || '⭐'),
             symbolName: winner.symbol || '',
             symbolType: winner.symbolType || (winner.symbolImage ? 'image' : 'icon'),
             dept: winner.department ? `${winner.department}${winner.year ? ` (Yr ${winner.year})` : ''}` : (winner.class ? `Class ${winner.class}` : 'N/A'),

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { io } from 'socket.io-client'
-import { votesAPI, candidatesAPI, electionAPI, positionsAPI } from '../../services/api'
+import { votesAPI, candidatesAPI, electionAPI, positionsAPI, getMediaUrl } from '../../services/api'
 import { CheckCircle, Vote, Monitor, Wifi, WifiOff, ChevronRight } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import toast from 'react-hot-toast'
@@ -700,9 +700,15 @@ export default function VotingDevice() {
                           <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-white/5 flex items-center justify-center text-xl sm:text-2xl overflow-hidden shrink-0">
                             {candidate.photo ? (
                               <img
-                                src={candidate.photo}
+                                src={getMediaUrl(candidate.photo)}
                                 alt={candidate.name}
                                 className="w-full h-full object-cover"
+                              />
+                            ) : candidate.symbolType === 'image' && candidate.symbolImage ? (
+                              <img
+                                src={getMediaUrl(candidate.symbolImage)}
+                                alt={candidate.symbol}
+                                className="w-full h-full object-contain p-1"
                               />
                             ) : (
                               candidate.symbolIcon
@@ -784,9 +790,15 @@ export default function VotingDevice() {
                   <div className="w-16 h-16 rounded-xl bg-white/5 flex items-center justify-center text-3xl overflow-hidden">
                     {candidate?.photo ? (
                       <img
-                        src={candidate.photo}
+                        src={getMediaUrl(candidate.photo)}
                         alt={candidate.name}
                         className="w-full h-full object-cover"
+                      />
+                    ) : candidate?.symbolType === 'image' && candidate?.symbolImage ? (
+                      <img
+                        src={getMediaUrl(candidate.symbolImage)}
+                        alt={candidate.symbol}
+                        className="w-full h-full object-contain p-1"
                       />
                     ) : (
                       candidate?.symbolIcon

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Edit2, Trash2, Trophy, Star, ShieldAlert, BookOpen, Layers, Upload } from 'lucide-react'
-import { candidatesAPI, electionAPI, positionsAPI, studentsAPI } from '../../services/api'
+import { candidatesAPI, electionAPI, positionsAPI, studentsAPI, getMediaUrl } from '../../services/api'
 import toast from 'react-hot-toast'
 import ExportButtons from '../../components/ExportButtons'
 
@@ -227,9 +227,9 @@ export default function CandidatesPage() {
       <div className="flex items-start gap-3">
         <div className="w-14 h-14 rounded-xl bg-white/5 flex items-center justify-center text-2xl flex-shrink-0 overflow-hidden">
           {c.photo ? (
-            <img src={c.photo} alt={c.name} className="w-full h-full object-cover" />
+            <img src={getMediaUrl(c.photo)} alt={c.name} className="w-full h-full object-cover" />
           ) : c.symbolType === 'image' && c.symbolImage ? (
-            <img src={c.symbolImage} alt={c.symbol} className="w-full h-full object-contain p-1" />
+            <img src={getMediaUrl(c.symbolImage)} alt={c.symbol} className="w-full h-full object-contain p-1" />
           ) : (
             c.symbolIcon || '⭐'
           )}
@@ -238,7 +238,7 @@ export default function CandidatesPage() {
           <h3 className="text-white font-bold truncate text-base">{c.name}</h3>
           <p className="text-white/70 text-xs font-medium truncate flex items-center gap-1.5 mt-0.5">
             {c.symbolType === 'image' && c.symbolImage ? (
-              <img src={c.symbolImage} alt={c.symbol} className="w-4 h-4 object-contain rounded" />
+              <img src={getMediaUrl(c.symbolImage)} alt={c.symbol} className="w-4 h-4 object-contain rounded" />
             ) : c.symbolIcon ? (
               <span className="text-sm">{c.symbolIcon}</span>
             ) : null}
@@ -341,7 +341,7 @@ export default function CandidatesPage() {
                   c.symbolType === 'image' && c.symbolImage ? (
                     <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <img
-                        src={c.symbolImage}
+                        src={getMediaUrl(c.symbolImage)}
                         alt={c.symbol}
                         style={{ width: '20px', height: '20px', objectFit: 'contain', borderRadius: '3px', verticalAlign: 'middle' }}
                       />
@@ -698,7 +698,7 @@ export default function CandidatesPage() {
                         <div className="border border-white/10 rounded-xl p-4 bg-white/5 flex flex-col items-center gap-3">
                           <p className="text-[10px] uppercase font-bold tracking-wider text-white/30">Preview</p>
                           <img
-                            src={symbolImagePreview}
+                            src={getMediaUrl(symbolImagePreview)}
                             alt="Symbol preview"
                             className="w-20 h-20 object-contain rounded-xl bg-white/5 p-1"
                           />

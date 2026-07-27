@@ -4,6 +4,16 @@ const API_BASE = import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api`
   : '/api'
 
+export const getMediaUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  const rawApiUrl = import.meta.env.VITE_API_URL || ''
+  const backendBase = rawApiUrl ? rawApiUrl.replace(/\/api\/?$/, '') : ''
+  return `${backendBase}${url.startsWith('/') ? '' : '/'}${url}`
+}
+
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
