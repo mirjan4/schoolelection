@@ -65,11 +65,6 @@ require('./socket/socketHandler')(io);
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/school_election')
   .then(() => {
     console.log('✅ MongoDB Connected');
-    
-    // Drop old indexes on the Vote collection so Mongoose can rebuild the correct ones
-    mongoose.connection.db.collection('votes').dropIndexes()
-      .then(() => console.log('🔄 Re-syncing MongoDB indexes for Vote collection...'))
-      .catch(() => console.log('ℹ️ Vote indexes clean'));
 
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, '0.0.0.0', () => {
