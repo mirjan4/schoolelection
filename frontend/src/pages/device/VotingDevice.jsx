@@ -378,18 +378,24 @@ export default function VotingDevice() {
       className={`kiosk-candidate-card w-full ${selected ? 'selected' : ''} ${big ? 'p-8' : 'p-5'}`}
     >
       <div
-        className={`rounded-2xl bg-white/5 flex items-center justify-center font-bold overflow-hidden flex-shrink-0
+        className={`rounded-2xl bg-white/5 flex items-center justify-center font-bold overflow-hidden flex-shrink-0 mx-auto mb-3
         ${big ? 'w-28 h-28 text-5xl' : 'w-20 h-20 text-3xl'}`}
       >
         {candidate.photo ? (
-          <img src={candidate.photo} alt={candidate.name} className="w-full h-full object-cover" />
+          <img src={getMediaUrl(candidate.photo)} alt={candidate.name} className="w-full h-full object-cover" />
+        ) : candidate.symbolType === 'image' && candidate.symbolImage ? (
+          <img src={getMediaUrl(candidate.symbolImage)} alt={candidate.symbol} className="w-full h-full object-contain p-2" />
         ) : (
           candidate.symbolIcon || '⭐'
         )}
       </div>
       <h3 className={`text-white font-bold text-center ${big ? 'text-2xl' : 'text-lg'}`}>{candidate.name}</h3>
       <p className="text-white/70 text-sm text-center font-medium flex items-center justify-center gap-1.5 mt-1">
-        {candidate.symbolIcon && <span className="text-base">{candidate.symbolIcon}</span>}
+        {candidate.symbolType === 'image' && candidate.symbolImage ? (
+          <img src={getMediaUrl(candidate.symbolImage)} alt={candidate.symbol} className="w-5 h-5 object-contain rounded" />
+        ) : candidate.symbolIcon ? (
+          <span className="text-base">{candidate.symbolIcon}</span>
+        ) : null}
         <span>{candidate.symbol}</span>
       </p>
       {selected && (
